@@ -1,6 +1,4 @@
-LeetCode 1. Two Sum
-
-
+**LeetCode&nbsp;&nbsp;1. Two Sum**
 
 ## 题目描述
 
@@ -14,8 +12,6 @@ LeetCode 1. Two Sum
 因为 nums[0] + nums[1] = 2 + 7 = 9
 所以返回 [0, 1]
 ```
-
-
 
 ## 解题思路
 
@@ -35,4 +31,3 @@ public:
     }
 };
 ```
-
