@@ -2,13 +2,14 @@
 
 - [Introduction](README.md)
 - [算法]()
-  - [排序]()
+  - [排序](abstract/sort.md)
     - [快速](algorithm/sort/quick.md)
     - [冒泡](algorithm/sort/bubble.md)
     - [选择](algorithm/sort/select.md)
     - [插入](algorithm/sort/insert.md)
     - [希尔](algorithm/sort/shell.md)
     - [堆](algorithm/sort/heap.md)
+    - [计数](algorithm/sort/count.md)
 
   - [LeetCode]()
     - [两数之和](algorithm/leetcode/1.md)
@@ -19,8 +20,10 @@
     - [字符串相乘](algorithm/leetcode/43.md)
     - [简化路径](algorithm/leetcode/71.md)
     - [复原IP地址](algorithm/leetcode/93.md)
+    - [最长连续序列](algorithm/leetcode/128.md)
     - [翻转字符串里的单词](algorithm/leetcode/151.md)
     - [数组中的第K个最大元素](algorithm/leetcode/215.md)
+    - [朋友圈](algorithm/leetcode/547.md)
     - [字符串的排列](algorithm/leetcode/567.md)
     - [最长连续递增序列](algorithm/leetcode/674.md)
     - [岛屿的最大面积](algorithm/leetcode/695.md)
@@ -69,6 +72,8 @@
 
   - [行为型]()
     - [责任链](designpattern/chainofresponsibility.md)
+    - [模板方法](designpattern/templatemethod.md)
+    - [策略](designpattern/strategy.md)
 
 - [工具]()
   - [Git]()

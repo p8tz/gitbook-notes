@@ -2,8 +2,10 @@
 
 Personal Notes
 
-link: [Polarnight](https://docs.p8t.cc)
+gitbook: [Polarnight](https://docs.p8t.cc)
 
-参考: 
-[cyc2018](https://cyc2018.github.io/CS-Notes)
+github: [p8tz](https://github.com/p8tz/gitbook-notes)
+
+references: 
+[cyc2018](https://cyc2018.github.io/CS-Notes) &nbsp;
 [hadyang](https://hadyang.github.io/interview/docs/leetcode/)
