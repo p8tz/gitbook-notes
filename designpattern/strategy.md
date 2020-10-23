@@ -10,6 +10,8 @@
 
 ## 实现
 
+切换不同交通工具出行
+
 ```java
 public interface Transport {
     void go();
@@ -58,4 +60,8 @@ public static void main(String[] args) {
     attend.setTransport(new Bike());
     attend.go();
 }
+/*
+    attend by bus
+    attend by bike
+*/
 ```

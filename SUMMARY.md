@@ -9,20 +9,28 @@
     - [插入](algorithm/sort/insert.md)
     - [希尔](algorithm/sort/shell.md)
     - [堆](algorithm/sort/heap.md)
+    - [归并](algorithm/sort/merge.md)
     - [计数](algorithm/sort/count.md)
+    - [桶](algorithm/sort/bucket.md)
+    - [基数](algorithm/sort/radix.md)
 
   - [LeetCode]()
     - [两数之和](algorithm/leetcode/1.md)
     - [无重复字符的最长子串](algorithm/leetcode/3.md)
     - [最长公共前缀](algorithm/leetcode/14.md)
     - [三数之和](algorithm/leetcode/15.md)
+    - [ 合并两个有序链表](algorithm/leetcode/21.md)
     - [搜索旋转排序数组](algorithm/leetcode/33.md)
+    - [接雨水](algorithm/leetcode/42.md)
     - [字符串相乘](algorithm/leetcode/43.md)
+    - [合并区间](algorithm/leetcode/56.md)
     - [简化路径](algorithm/leetcode/71.md)
     - [复原IP地址](algorithm/leetcode/93.md)
     - [最长连续序列](algorithm/leetcode/128.md)
     - [翻转字符串里的单词](algorithm/leetcode/151.md)
+    - [反转链表](algorithm/leetcode/206.md)
     - [数组中的第K个最大元素](algorithm/leetcode/215.md)
+    - [数组中重复的数据](algorithm/leetcode/442.md)
     - [朋友圈](algorithm/leetcode/547.md)
     - [字符串的排列](algorithm/leetcode/567.md)
     - [最长连续递增序列](algorithm/leetcode/674.md)
@@ -46,10 +54,11 @@
 
 - [数据库]()
   - [MySQL]()
-    - [基本操作](database/mysql/basic.md)
-
-  - [Redis]()
-
+    - [SQL](database/mysql/sql.md)
+    - [原理](database/mysql/theory.md)
+  
+- [Redis]()
+  
 - [设计模式]()
   - [基础]()
     - [类关系](designpattern/basic/clazzrelationship.md)
@@ -74,7 +83,10 @@
     - [责任链](designpattern/chainofresponsibility.md)
     - [模板方法](designpattern/templatemethod.md)
     - [策略](designpattern/strategy.md)
-
+    - [观察者](designpattern/observer.md) 
+    - [中介者](designpattern/mediator.md)
+    - [状态](designpattern/state.md)
+  
 - [工具]()
   - [Git]()
   - [Docker]()
