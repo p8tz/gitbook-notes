@@ -259,6 +259,12 @@ WHERE col1 IN (SELECT col2
 
 ### 内连接
 
+在MySQL中`JOIN`, `CROSS JOIN`, and `INNER JOIN`是一样的, 不加条件就是笛卡尔积
+
+> [MySQL](https://dev.mysql.com/doc/refman/8.0/en/join.html)
+>
+> In MySQL, `JOIN`, `CROSS JOIN`, and `INNER JOIN` are syntactic equivalents (they can replace each other). In standard SQL, they are not equivalent. `INNER JOIN` is used with an `ON` clause, `CROSS JOIN` is used otherwise.
+
 内连接又称等值连接，使用 `INNER JOIN` 关键字。
 
 ```mysql
@@ -281,7 +287,7 @@ WHERE A.key = B.key;
 
 内连接和自然连接的区别：内连接提供连接的列，而自然连接自动连接所有同名列。
 
-```sql
+```mysql
 SELECT A.value, B.value
 FROM tablea AS A NATURAL JOIN tableb AS B;
 ```
@@ -299,6 +305,12 @@ SELECT Customers.cust_id, Customer.cust_name, Orders.order_id
 FROM Customers LEFT OUTER JOIN Orders
 ON Customers.cust_id = Orders.cust_id;
 ```
+
+在MySQL中, 右外连接会被转化为左外连接
+
+> [MySQL](https://dev.mysql.com/doc/refman/5.6/en/outer-join-simplification.html)
+>
+> At the parser stage, queries with right outer join operations are converted to equivalent queries containing only left join operations. 
 
 ## 十二. 组合查询
 

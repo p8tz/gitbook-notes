@@ -1,6 +1,7 @@
 ```java
 void quickSort(int[] nums, int left, int right) {
-    if (left >= right) return;
+    if (left >= right)
+        return;
 
     int l = left;
     int r = right;

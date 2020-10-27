@@ -1,6 +1,10 @@
 # Summary
 
 - [Introduction](README.md)
+
+- [数据结构]()
+  - [树](datastructure/tree.md)
+  
 - [算法]()
   - [排序](abstract/sort.md)
     - [快速](algorithm/sort/quick.md)
@@ -16,6 +20,7 @@
 
   - [LeetCode]()
     - [两数之和](algorithm/leetcode/1.md)
+    - [两数相加](algorithm/leetcode/2.md)
     - [无重复字符的最长子串](algorithm/leetcode/3.md)
     - [最长公共前缀](algorithm/leetcode/14.md)
     - [三数之和](algorithm/leetcode/15.md)
@@ -23,21 +28,37 @@
     - [搜索旋转排序数组](algorithm/leetcode/33.md)
     - [接雨水](algorithm/leetcode/42.md)
     - [字符串相乘](algorithm/leetcode/43.md)
+    - [最大子序和](algorithm/leetcode/53.md)
     - [合并区间](algorithm/leetcode/56.md)
     - [简化路径](algorithm/leetcode/71.md)
     - [复原IP地址](algorithm/leetcode/93.md)
+    - [买卖股票的最佳时机](algorithm/leetcode/121.md)
+    - [买卖股票的最佳时机 II](algorithm/leetcode/122.md)
     - [最长连续序列](algorithm/leetcode/128.md)
+    - [环形链表 II](algorithm/leetcode/142.md)
+    - [排序链表](algorithm/leetcode/148.md)
     - [翻转字符串里的单词](algorithm/leetcode/151.md)
+    - [相交链表](algorithm/leetcode/160.md)
     - [反转链表](algorithm/leetcode/206.md)
     - [数组中的第K个最大元素](algorithm/leetcode/215.md)
+    - [二叉树的最近公共祖先](algorithm/leetcode/236.md)
+    - [只出现一次的数字 III](algorithm/leetcode/260.md)
     - [数组中重复的数据](algorithm/leetcode/442.md)
     - [朋友圈](algorithm/leetcode/547.md)
     - [字符串的排列](algorithm/leetcode/567.md)
     - [最长连续递增序列](algorithm/leetcode/674.md)
     - [岛屿的最大面积](algorithm/leetcode/695.md)
 
+  - [剑指offer]()
+    - [数组中重复的数字](algorithm/jmvioffer/3.md)
+    - [二维数组中的查找](algorithm/jmvioffer/4.md)
+  
 - [操作系统]()
   - [OS]()
+    - [进程管理](operatingsystem/os/process.md)
+    - [内存管理](operatingsystem/os/memory.md)
+    - [文件管理](operatingsystem/os/file.md)
+    - [设备管理](operatingsystem/os/device.md)
 
   - [Linux]()
 
@@ -86,6 +107,8 @@
     - [观察者](designpattern/observer.md) 
     - [中介者](designpattern/mediator.md)
     - [状态](designpattern/state.md)
+    - [备忘录](designpattern/memento.md)
+    - [命令](designpattern/command.md)
   
 - [工具]()
   - [Git]()
