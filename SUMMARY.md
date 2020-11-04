@@ -1,10 +1,8 @@
 # Summary
 
 - [Introduction](README.md)
-
 - [数据结构]()
   - [树](datastructure/tree.md)
-  
 - [算法]()
   - [排序](abstract/sort.md)
     - [快速](algorithm/sort/quick.md)
@@ -50,19 +48,26 @@
     - [岛屿的最大面积](algorithm/leetcode/695.md)
 
   - [剑指offer]()
-    - [数组中重复的数字](algorithm/jmvioffer/3.md)
-    - [二维数组中的查找](algorithm/jmvioffer/4.md)
+    - [\*数组中重复的数字](algorithm/jmvioffer/3.md)
+    - [\*二维数组中的查找](algorithm/jmvioffer/4.md)
     - [替换空格](algorithm/jmvioffer/5.md)
     - [从尾到头打印链表](algorithm/jmvioffer/6.md)
-    - [重建二叉树](algorithm/jmvioffer/7.md)
+    - [\*重建二叉树](algorithm/jmvioffer/7.md)
     - [用两个栈实现队列](algorithm/jmvioffer/9.md)
     - [斐波那契数列](algorithm/jmvioffer/10-1.md)
     - [青蛙跳台阶问题](algorithm/jmvioffer/10-2.md)
     - [旋转数组的最小数字](algorithm/jmvioffer/11.md)
     - [矩阵中的路径](algorithm/jmvioffer/12.md)
-    - [机器人的运动范围](algorithm/jmvioffer/13.md)
-    - [\*剪绳子](algorithm/jmvioffer/14-1.md)
-  
+    - [\*机器人的运动范围](algorithm/jmvioffer/13.md)
+    - [\*剪绳子-1](algorithm/jmvioffer/14-1.md)
+    - [剪绳子-2](algorithm/jmvioffer/14-2.md)
+    - [二进制中1的个数](algorithm/jmvioffer/15.md)
+    - [数值的整数次方](algorithm/jmvioffer/16.md)
+    - [打印从1到最大的n位数](algorithm/jmvioffer/17.md)
+    - [删除链表的节点](algorithm/jmvioffer/18.md)
+    - [\*正则表达式匹配](algorithm/jmvioffer/19.md)
+    - [\*表示数值的字符串](algorithm/jmvioffer/20.md)
+
 - [操作系统]()
   - [OS]()
     - [概述](operatingsystem/os/overview.md)
@@ -72,9 +77,10 @@
     - [文件管理](operatingsystem/os/file.md)
 
   - [Linux]()
-
 - [网络]()
-
+  - [概述](network/overview.md)
+  - [http](network/http.md)
+  
 - [Java]()
   - [基础]()
 
@@ -83,14 +89,11 @@
   - [并发]()
 
   - [JVM]()
-
 - [数据库]()
   - [MySQL]()
     - [SQL](database/mysql/sql.md)
     - [原理](database/mysql/theory.md)
-  
 - [Redis]()
-  
 - [设计模式]()
   - [基础]()
     - [类关系](designpattern/basic/clazzrelationship.md)
@@ -120,7 +123,6 @@
     - [状态](designpattern/state.md)
     - [备忘录](designpattern/memento.md)
     - [命令](designpattern/command.md)
-  
 - [工具]()
   - [Git]()
   - [Docker]()
