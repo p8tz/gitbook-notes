@@ -67,7 +67,12 @@
     - [删除链表的节点](algorithm/jmvioffer/18.md)
     - [\*正则表达式匹配](algorithm/jmvioffer/19.md)
     - [\*表示数值的字符串](algorithm/jmvioffer/20.md)
-
+    - [调整数组顺序使奇数位于偶数前面](algorithm/jmvioffer/21.md)
+    - [链表中倒数第k个节点](algorithm/jmvioffer/22.md)
+    - [反转链表](algorithm/jmvioffer/24.md)
+    - [合并两个排序的链表](algorithm/jmvioffer/25.md)
+    - [树的子结构](algorithm/jmvioffer/26.md)
+  
 - [操作系统]()
   - [OS]()
     - [概述](operatingsystem/os/overview.md)
@@ -79,7 +84,7 @@
   - [Linux]()
 - [网络]()
   - [概述](network/overview.md)
-  - [http](network/http.md)
+  - [HTTP](network/http.md)
   
 - [Java]()
   - [基础]()
