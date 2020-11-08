@@ -2,6 +2,7 @@
 
 - [Introduction](README.md)
 - [数据结构]()
+  
   - [树](datastructure/tree.md)
 - [算法]()
   - [排序](abstract/sort.md)
@@ -50,7 +51,6 @@
   - [剑指offer]()
     - [\*数组中重复的数字](algorithm/jmvioffer/3.md)
     - [\*二维数组中的查找](algorithm/jmvioffer/4.md)
-    - [替换空格](algorithm/jmvioffer/5.md)
     - [从尾到头打印链表](algorithm/jmvioffer/6.md)
     - [\*重建二叉树](algorithm/jmvioffer/7.md)
     - [用两个栈实现队列](algorithm/jmvioffer/9.md)
@@ -72,6 +72,8 @@
     - [反转链表](algorithm/jmvioffer/24.md)
     - [合并两个排序的链表](algorithm/jmvioffer/25.md)
     - [树的子结构](algorithm/jmvioffer/26.md)
+    - [二叉树的镜像](algorithm/jmvioffer/27.md)
+    - [对称的二叉树](algorithm/jmvioffer/28.md)
   
 - [操作系统]()
   - [OS]()
@@ -80,11 +82,11 @@
     - [内存管理](operatingsystem/os/memory.md)
     - [设备管理](operatingsystem/os/device.md)
     - [文件管理](operatingsystem/os/file.md)
-
   - [Linux]()
 - [网络]()
   - [概述](network/overview.md)
   - [HTTP](network/http.md)
+  - [网络IO模型](network/io.md)
   
 - [Java]()
   - [基础]()
@@ -98,6 +100,8 @@
   - [MySQL]()
     - [SQL](database/mysql/sql.md)
     - [原理](database/mysql/theory.md)
+    
+  - [Redis](database/redis.md)
 - [Redis]()
 - [设计模式]()
   - [基础]()

@@ -43,7 +43,7 @@ HTTP最初的版本。它只有一个方法（GET），没有首部，其设计�
 
   HTTP/2.0 将报文分成 HEADERS 帧和 DATA 帧，它们都是二进制格式的。
 
-  <embed src="https://gitee.com/p8t/picbed/raw/master/imgs/20201104153601.svg" type="image/svg+xml" />
+  ![image-20201105222734931](https://gitee.com/p8t/picbed/raw/master/imgs/20201105222736.png)
 
   在通信过程中，只会有一个 TCP 连接存在，它承载了任意数量的双向数据流（Stream）。
 
@@ -53,13 +53,13 @@ HTTP最初的版本。它只有一个方法（GET），没有首部，其设计�
 
   - 帧（Frame）是最小的通信单位，来自不同数据流的帧可以交错发送，然后再根据每个帧头的数据流标识符重新组装。
 
-  - <embed src="https://gitee.com/p8t/picbed/raw/master/imgs/20201104153949.svg" type="image/svg+xml" />
+    ![image-20201105222800618](https://gitee.com/p8t/picbed/raw/master/imgs/20201105222801.png)
 
 - 多路复用 (Multiplexing)
 
   解决了HTTP/1.1并发请求问题。通过二进制分帧，一个TCP连接可以传输多个流。相当于把原来的多个请求打散并发的在一个TCP连接内传输，这样每一个请求都不会阻塞。这项技术的实现基于二进制分帧层，解决了HTTP/1.1队头阻塞问题。
 
-  <embed src="https://gitee.com/p8t/picbed/raw/master/imgs/20201104160507.svg" type="image/svg+xml" />
+  ![image-20201105222824260](https://gitee.com/p8t/picbed/raw/master/imgs/20201105222825.png)
 
 - 首部压缩（Header Compression）
 
@@ -69,13 +69,13 @@ HTTP最初的版本。它只有一个方法（GET），没有首部，其设计�
 
   不仅如此，HTTP/2.0 也使用 `Huffman `编码对首部字段进行压缩。
 
-  <embed src="https://gitee.com/p8t/picbed/raw/master/imgs/20201104154454.svg" type="image/svg+xml" />
+  ![image-20201105222902434](https://gitee.com/p8t/picbed/raw/master/imgs/20201105222903.png)
 
 - 服务端推送（Server Push）
 
   HTTP/2.0 在客户端请求一个资源时，会把相关的资源一起发送给客户端，客户端就不需要再次发起请求了。例如客户端请求 `page.html`页面，服务端就把 `script.js` 和 `style.css` 等与之相关的资源一起发给客户端。
 
-  <embed src="https://gitee.com/p8t/picbed/raw/master/imgs/20201104154318.svg" type="image/svg+xml" />
+  ![image-20201105222923268](https://gitee.com/p8t/picbed/raw/master/imgs/20201105222924.png)
   
 - 流优先级（Stream Prioritization）
 
@@ -86,9 +86,9 @@ HTTP最初的版本。它只有一个方法（GET），没有首部，其设计�
 
   流依赖项和权重的组合允许客户端构造和通信一个"优先级树"，该树表示它希望如何接收响应。反过来，服务器可以使用此信息通过控制 CPU、内存和其他资源的分配来确定流处理的优先级，一旦响应数据可用，分配带宽以确保对客户端的最佳高优先级响应。
 
-  <embed src="https://gitee.com/p8t/picbed/raw/master/imgs/20201104161324.svg" type="image/svg+xml" />
+  ![image-20201105222941590](https://gitee.com/p8t/picbed/raw/master/imgs/20201105222942.png)
 
-## 二、报文
+## 二、HTTP报文
 
 ### 请求报文
 
@@ -495,7 +495,47 @@ POST用于添加资源，多次post会添加多个记录，不是幂等的。可
 
 ## 十、HTTPS
 
-<embed src="https://gitee.com/p8t/picbed/raw/master/imgs/20201105222115.svg"/>
+HTTP安全问题
+
+- 数据传输使用明文
+- 无法验证报文完整性，报文可能被篡改
+- 不验证通信方的身份，通信方的身份有可能遭遇伪装
+
+HTTPS 并不是新协议，而是让 HTTP 先和 SSL（Secure Sockets Layer）通信，再由 SSL 和 TCP 通信，也就是说 HTTPS 使用了隧道进行通信。
+
+通过使用 SSL，HTTPS 具有了**加密**（防窃听）、**认证**（防伪装）和**完整性保护**（防篡改）。
+
+![image-20201105223758435](https://gitee.com/p8t/picbed/raw/master/imgs/20201105223759.png)
+
+### 加密
+
+对称密钥加密方式的传输效率更高，但是无法安全地将客户端生成的密钥 Secret Key 传输给通信方。而非对称密钥加密方式可以保证传输的安全性，因此我们可以利用非对称密钥加密方式将 Secret Key 传输给通信方。HTTPS 采用混合的加密机制：
+
+- 使用非对称密钥加密方式，传输对称密钥加密方式所需要的 Secret Key，从而保证安全性;
+
+- 获取到 Secret Key 后，再使用对称密钥加密方式进行通信，从而保证效率。（下图中的 Session Key 就是 Secret Key）
+
+  ![20201106160509](https://gitee.com/p8t/picbed/raw/master/imgs/20201106160509.png)
+
+### 认证
+
+通过使用 **证书** 来对通信方进行认证。
+
+数字证书认证机构（CA，Certificate Authority）是客户端与服务器双方都可信赖的第三方机构。
+
+服务器的运营人员向 CA 提出公开密钥的申请，CA 在判明提出申请者的身份之后，会对已申请的公开密钥做数字签名，然后分配这个已签名的公开密钥，并将该公开密钥放入公开密钥证书后绑定在一起。
+
+进行 HTTPS 通信时，服务器会把证书发送给客户端。客户端取得其中的公开密钥之后，先使用数字签名进行验证，如果验证通过，就可以开始通信了。
+
+![20201106163035](https://gitee.com/p8t/picbed/raw/master/imgs/20201106163035.png)
+
+### 数据完整性
+
+SSL 通过对报文hash生成摘要来保证数据完整性，因为传输的是加密报文，而摘要是基于原始数据生成的，因此不怕被人篡改加密报文的同时篡改摘要。
+
+HTTP 也提供了 MD5 报文摘要功能，但不是安全的。例如报文内容被篡改之后，同时重新计算 MD5 的值，通信接收方是无法意识到发生了篡改。
+
+HTTPS 的报文摘要功能之所以安全，是因为它结合了加密和认证这两个操作。试想一下，加密之后的报文，遭到篡改之后，也很难重新计算报文摘要，因为无法轻易获取明文。
 
 ## 参考资料
 
