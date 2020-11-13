@@ -1,5 +1,3 @@
-## 一、数据类型
-
 | 数据类型 | 可以存储的值           | 操作                                                         |
 | -------- | ---------------------- | ------------------------------------------------------------ |
 | STRING   | 字符串、整数或者浮点数 | 对整个字符串或者字符串的其中一部分执行操作 对整数和浮点数执行自增或者自减操作 |
@@ -8,7 +6,7 @@
 | HASH     | 包含键值对的无序散列表 | 添加、获取、移除单个键值对 获取所有键值对 检查某个键是否存在 |
 | ZSET     | 有序集合               | 添加、获取、删除元素 根据分值范围或者成员来获取元素 计算一个键的排名 |
 
-### string
+## string
 
 **`set, get, del`**
 
@@ -104,7 +102,7 @@ OK
 
 ![image-20201107150940616](https://gitee.com/p8t/picbed/raw/master/imgs/20201107160825.png)
 
-### hash
+## hash
 
 **`hset, hget, hgetall, hdel, hmset... heln, hexists`**
 
@@ -146,7 +144,7 @@ OK
 
 **`hincrby, hincrbyfloat`**
 
-### list
+## list
 
 **`lpush, rpush, lpop, rpop, lindex, lrange, llen`**
 
@@ -213,7 +211,7 @@ session 1:						session 2:
 4) "f"
 ```
 
-### set
+## set
 
 **`sadd, smembers, srem, scard, sismember`**
 
@@ -250,7 +248,7 @@ session 1:						session 2:
 (integer) 2
 ```
 
-### zset
+## zset
 
 **`zadd, zrange, zrevrange, zrem, zcard, zcount`**
 
@@ -326,9 +324,9 @@ session 1:						session 2:
 "60"
 ```
 
-### 通用命令
+## 通用命令
 
-#### 与key相关
+### 与key相关
 
 **`del, exists, type`**
 
@@ -410,7 +408,7 @@ OK
 5) "2"
 ```
 
-#### 与DB相关
+### 与DB相关
 
 **`select, ping`**
 
@@ -457,11 +455,3 @@ OK
 ```
 
 **`flushdb, flushall, dbsize`**
-
-## 二、持久化
-
-### RDB
-
-#### 操作
-
-通过**`save`**指令生成**`dump.rdb`**文件

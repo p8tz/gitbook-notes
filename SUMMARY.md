@@ -4,6 +4,9 @@
 - [数据结构]()
   
   - [树](datastructure/tree.md)
+  - [前缀树](datastructure/trie.md)
+  - [并查集](datastructure/unionfind.md)
+  - [树状数组](datastructure/bit.md)
 - [算法]()
   - [排序](abstract/sort.md)
     - [快速](algorithm/sort/quick.md)
@@ -24,6 +27,7 @@
     - [最长公共前缀](algorithm/leetcode/14.md)
     - [三数之和](algorithm/leetcode/15.md)
     - [ 合并两个有序链表](algorithm/leetcode/21.md)
+    - [下一个排列](algorithm/leetcode/31.md)
     - [搜索旋转排序数组](algorithm/leetcode/33.md)
     - [接雨水](algorithm/leetcode/42.md)
     - [字符串相乘](algorithm/leetcode/43.md)
@@ -47,7 +51,6 @@
     - [字符串的排列](algorithm/leetcode/567.md)
     - [最长连续递增序列](algorithm/leetcode/674.md)
     - [岛屿的最大面积](algorithm/leetcode/695.md)
-
   - [剑指offer]()
     - [\*数组中重复的数字](algorithm/jmvioffer/3.md)
     - [\*二维数组中的查找](algorithm/jmvioffer/4.md)
@@ -64,7 +67,6 @@
     - [二进制中1的个数](algorithm/jmvioffer/15.md)
     - [数值的整数次方](algorithm/jmvioffer/16.md)
     - [打印从1到最大的n位数](algorithm/jmvioffer/17.md)
-    - [删除链表的节点](algorithm/jmvioffer/18.md)
     - [\*正则表达式匹配](algorithm/jmvioffer/19.md)
     - [\*表示数值的字符串](algorithm/jmvioffer/20.md)
     - [调整数组顺序使奇数位于偶数前面](algorithm/jmvioffer/21.md)
@@ -74,6 +76,7 @@
     - [树的子结构](algorithm/jmvioffer/26.md)
     - [二叉树的镜像](algorithm/jmvioffer/27.md)
     - [对称的二叉树](algorithm/jmvioffer/28.md)
+    - [二叉搜索树的后序遍历序列](algorithm/jmvioffer/33.md)
   
 - [操作系统]()
   - [OS]()
@@ -90,19 +93,17 @@
   
 - [Java]()
   - [基础]()
-
-  - [集合]()
-
-  - [并发]()
-
+- [集合]()
+  - [概述](java/collection/overview.md)
+- [并发]()
   - [JVM]()
 - [数据库]()
   - [MySQL]()
     - [SQL](database/mysql/sql.md)
     - [原理](database/mysql/theory.md)
-    
-  - [Redis](database/redis.md)
-- [Redis]()
+  - [Redis]()
+    - [命令](database/redis/instruction.md)
+    - [原理](database/redis/theory.md)
 - [设计模式]()
   - [基础]()
     - [类关系](designpattern/basic/clazzrelationship.md)
