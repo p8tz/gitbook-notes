@@ -2,11 +2,11 @@
 
 - [Introduction](README.md)
 - [数据结构]()
-  
   - [树](datastructure/tree.md)
   - [前缀树](datastructure/trie.md)
   - [并查集](datastructure/unionfind.md)
   - [树状数组](datastructure/bit.md)
+  - [LRU缓存](datastructure/lru.md)
 - [算法]()
   - [排序](abstract/sort.md)
     - [快速](algorithm/sort/quick.md)
@@ -19,7 +19,6 @@
     - [计数](algorithm/sort/count.md)
     - [桶](algorithm/sort/bucket.md)
     - [基数](algorithm/sort/radix.md)
-
   - [LeetCode]()
     - [两数之和](algorithm/leetcode/1.md)
     - [两数相加](algorithm/leetcode/2.md)
@@ -40,7 +39,6 @@
     - [最长连续序列](algorithm/leetcode/128.md)
     - [环形链表 II](algorithm/leetcode/142.md)
     - [排序链表](algorithm/leetcode/148.md)
-    - [翻转字符串里的单词](algorithm/leetcode/151.md)
     - [相交链表](algorithm/leetcode/160.md)
     - [反转链表](algorithm/leetcode/206.md)
     - [数组中的第K个最大元素](algorithm/leetcode/215.md)
@@ -51,6 +49,7 @@
     - [字符串的排列](algorithm/leetcode/567.md)
     - [最长连续递增序列](algorithm/leetcode/674.md)
     - [岛屿的最大面积](algorithm/leetcode/695.md)
+    - [\*使字符串平衡的最少删除次数](algorithm/leetcode/5551.md)
   - [剑指offer]()
     - [\*数组中重复的数字](algorithm/jmvioffer/3.md)
     - [\*二维数组中的查找](algorithm/jmvioffer/4.md)
@@ -77,7 +76,6 @@
     - [二叉树的镜像](algorithm/jmvioffer/27.md)
     - [对称的二叉树](algorithm/jmvioffer/28.md)
     - [二叉搜索树的后序遍历序列](algorithm/jmvioffer/33.md)
-  
 - [操作系统]()
   - [OS]()
     - [概述](operatingsystem/os/overview.md)
@@ -90,12 +88,10 @@
   - [概述](network/overview.md)
   - [HTTP](network/http.md)
   - [网络IO模型](network/io.md)
-  
 - [Java]()
-  - [基础]()
-- [集合]()
-  - [概述](java/collection/overview.md)
-- [并发]()
+  - [基础](java/basic.md)
+  - [集合](java/collection.md)
+  - [并发]()
   - [JVM]()
 - [数据库]()
   - [MySQL]()
@@ -108,13 +104,11 @@
   - [基础]()
     - [类关系](designpattern/basic/clazzrelationship.md)
     - [设计原则](designpattern/basic/designprinciple.md)
-
   - [创建型]()
     - [单例](designpattern/singleton.md)
     - [工厂](designpattern/factory.md)
     - [建造者](designpattern/builder.md)
     - [原型](designpattern/prototype.md)
-
   - [结构型]()
     - [代理](designpattern/proxy.md)
     - [适配器](designpattern/adapter.md)
@@ -123,7 +117,6 @@
     - [装饰器](designpattern/decorator.md)
     - [享元](designpattern/flyweight.md)
     - [外观](designpattern/facade.md)
-
   - [行为型]()
     - [责任链](designpattern/chainofresponsibility.md)
     - [模板方法](designpattern/templatemethod.md)
