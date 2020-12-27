@@ -798,3 +798,78 @@ ByteBuf markWriterIndex()
 ByteBuf resetWriterIndex()
 ```
 
+## Codec
+
+### 数据包划分
+
+#### LineBasedFrameDecoder
+
+根据换行符划分数据包，发送方需要在每条消息末尾添加换行符。**可用于解决粘包问题**
+
+```java
+// 发送方, 这里没什么特别的, 只要在发送消息的地方加上换行符即可
+@Override
+protected void initChannel(SocketChannel ch) throws Exception {
+    ch.pipeline()
+        .addLast(new SHandler1());
+}
+// 接收方
+@Override
+protected void initChannel(SocketChannel ch) throws Exception {
+    ch.pipeline()
+        // 分界符解码器, 按换行符把数据包分开
+        .addLast(new LineBasedFrameDecoder(4096))
+        .addLast(new CHandler1());
+}
+```
+
+#### DelimiterBasedFrameDecoder
+
+按任意分隔符划分数据包
+
+#### LengthFieldBasedFrameDecoder
+
+消息额外附加长度信息。**可用于解决粘包问题**
+
+附加长度信息可以手动添加，也可以用`LengthFieldPrepender`自动添加，它会自动获取`ByteBuf`可读长度，然后在消息前面添加指定长度的长度信息
+
+```java
+// 发送方
+@Override
+protected void initChannel(SocketChannel ch) throws Exception {
+    ch.pipeline()
+        // 把在发送的信息前面自动填充4字节的信息长度信息
+        // 也可以不用这个, 自己手动填充
+        .addLast(new LengthFieldPrepender(4))
+        .addLast(new SHandler1());
+}
+// 接收方
+@Override
+protected void initChannel(SocketChannel ch) throws Exception {
+    ch.pipeline()
+        // 最大帧长4096, 超出报异常
+        
+        // 长度信息记录在这个信息的从0开始, 偏移4个字节的位置
+        
+        // 一般来说, 长度信息记录的是后面消息的长度, 这时第4个参数置0即可
+        // 如果长度信息还包含了它本身的长度, 那么这里置为-4, 表示取消息的时候
+        // 少取4个, 因为有4个字节被长度信息占用了
+        // 高级用法见JavaDoc, 举了7个例子, 很详细
+        
+        // 第5个参数表示索引4之前的信息被丢弃, 很好理解, 因为前4个是长度信息
+        // 而我们已经获得了正确的数据包, 就不需要它了
+        .addLast(new LengthFieldBasedFrameDecoder(4096, 0, 4, 0, 4))
+        .addLast(new CHandler1());
+}
+```
+
+### HTTP
+
+- `HttpResponseEncoder`
+- `HttpResponseDecoder`
+- `HttpRequestDecoder`
+- `HttpRequestEncoder`
+- `HttpServerCodec`
+- `HttpClientCodec`
+
+服务端使用`HttpResponseEncoder`和`HttpRequestDecoder`，可用`HttpServerCodec`简化；客户端使用`HttpResponseDecoder`和`HttpRequestEncoder`，可用`HttpClientCodec`简化

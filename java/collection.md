@@ -28,14 +28,14 @@ int[] arr = Arrays.stream(list.toArray(new Integer[0])).mapToInt(Integer::intVal
 **包装类型数组转基本类型数组**
 
 ```java
-Integer[] boxed = {1, 2 ,3};
+Integer[] boxed = {1, 2, 3};
 int[] unboxed = Arrays.stream(boxed).mapToInt(Integer::intValue).toArray();
 ```
 
 **基本类型数组转包装类型数组**
 
 ```java
-int[] unboxed = {1, 2 ,3};
+int[] unboxed = {1, 2, 3};
 Integer[] boxed = Arrays.stream(unboxed).boxed().toArray(Integer[]::new);
 ```
 
@@ -164,8 +164,3 @@ public void addLast(E e) {
     - 当前桶不为空，加`synchronized`
   - 结构和1.8的`HashMap`基本相同，但是计算`hash`多了一步，把最高位置0，不知道有什么实际用途
   - `size()`方法，计算`size`并不是简单的维护一个`size`变量，因为1.8的`CCHM`并发度更高，如果用一个变量计算`size`竞争会很激烈。当需要修改元素数量时，线程会先去 `CAS `修改 `baseCount`加1，若成功即返回。若失败，则线程被分配到某个 `CounterCell`，然后操作 `value`加1。若成功，则返回。否则，给当前线程重新分配一个`CounterCell`，再尝试给 value 加1。（这里简略的说，实际更复杂）。`CounterCell`会组成一个数组，也会涉及到扩容问题。统计`size`则是遍历 `counterCells`数组，得到每个对象中的`value`值进行累加，这只是获取`size`时的计算方法。计算过程中有个`fullAddCount()`方法，极为复杂
-
-
-
-
-

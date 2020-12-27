@@ -705,3 +705,159 @@ private void unparkSuccessor(Node node) {
 ### LockSupport
 
 在`AQS`中挂起和恢复线程用到了`LockSupport`类的`park() / unpark()`，和`Object`的`wait() ` / `notify()`不同，它不需要限制在`synchronized`中使用
+
+此外，`LockSupport`就是`Condition`实现的核心。在`AQS`内部有个类实现了`Condition`接口，并且里面线程阻塞唤醒用的就是`LockSupport`
+
+## 十、工具类
+
+### CountDownLatch
+
+```java
+public class E {
+    public static void main(String[] args) {
+        CountDownLatch cdl = new CountDownLatch(3);
+        Thread t1 = new Thread(() -> {
+            TimeUnit.SECONDS.sleep(1);
+            System.out.println("first countdown");
+            cdl.countDown();
+        });
+        Thread t2 = new Thread(() -> {
+            TimeUnit.SECONDS.sleep(2);
+            System.out.println("second countdown");
+            cdl.countDown();
+        });
+        Thread t3 = new Thread(() -> {
+            TimeUnit.SECONDS.sleep(3);
+            System.out.println("third countdown");
+            cdl.countDown();
+        });
+        t1.start();
+        t2.start();
+        t3.start();
+        cdl.await();
+        System.out.println("main thread");
+        /*
+         * first countdown
+         * second countdown
+         * third countdown
+         * main thread
+         */
+    }
+}
+```
+
+### CyclicBarrier
+
+```java
+public class E {
+    public static void main(String[] args) {
+        CyclicBarrier cb = new CyclicBarrier(3);
+        Thread t1 = new Thread(() -> {
+            TimeUnit.SECONDS.sleep(1);
+            cb.await();
+            System.out.println("t1");
+        });
+        Thread t2 = new Thread(() -> {
+            TimeUnit.SECONDS.sleep(2);
+            cb.await();
+            System.out.println("t2");
+        });
+        Thread t3 = new Thread(() -> {
+            TimeUnit.SECONDS.sleep(3);
+            cb.await();
+            System.out.println("t3");
+        });
+        t1.start();
+        t2.start();
+        t3.start();
+        // 每个线程执行到cb.await()时挂起, 直到有3个都执行到这, 然后全部放行
+    }
+}
+```
+
+### Semaphore
+
+## 十一、ReentrantReadWriteLock
+
+读写锁内部含有读锁对象和写锁对象，但是这两个共享一个`AQS`，也就意味着共享一个资源变量**`state`**，具体共享方式实现如下图，高16位用于读锁，低16位用于写锁
+
+![image-20201130203543036](https://gitee.com/p8t/picbed/raw/master/imgs/20201130203544.png)
+
+剩下的操作基本上就是`AQS`的实现了，使用`Condition`进行读写同步
+
+## 十二、强软弱虚
+
+- 强
+  - 就是正常new的对象引用方式
+- 软
+  - 内存不足时，无论是否为垃圾，GC都会回收
+  - 可用于缓存
+- 弱
+  - 垃圾回收器看到就GC
+  - **解决内存泄露问题**
+- 虚
+  - 和没有一样
+  - 在被回收的时候会给一个队列发送消息
+  - 用于管理堆外内存
+
+## 十三、ThreadLocal
+
+### 使用
+
+```java
+static ThreadLocal<String> tl = new ThreadLocal<>();
+
+public static void main(String[] args) {
+    // 往自己线程的map中放入value
+    new Thread(() -> tl.set("TL")).start();
+    new Thread(() ->{
+        try {
+            TimeUnit.SECONDS.sleep(1);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        // 在自己线程的map中获取value
+        System.out.println(tl.get());	// null
+    }).start();
+}
+```
+
+### 源码
+
+```java
+public void set(T value) {
+    Thread t = Thread.currentThread();
+    // 这个map来自当前线程
+    ThreadLocalMap map = getMap(t);
+    if (map != null) {
+        // 在当前线程的一个map中设置value, key为这个ThreadLocal对象
+        map.set(this, value);
+    } else {
+        // 在当前线程实例化ThreadLocalMap
+        createMap(t, value);
+    }
+}
+
+static class ThreadLocalMap {
+    static class Entry extends WeakReference<ThreadLocal<?>> {
+        Object value;
+		// map中的key/value是一个entry
+        Entry(ThreadLocal<?> k, Object v) {
+            // 这里把key传给WeakReference说明key指向的ThreadLocal是弱引用
+            super(k);
+            value = v;
+        }
+    }
+	// ...
+}
+```
+
+### 内存泄漏
+
+当在一个`ThreadLocal`中`set`一个值后，其引用关系如下图。`tl`指向`new`出来的`ThreadLocal`对象，并且因为ThreadLocalMap中的`key`也是`ThreadLocal`，因此这个`key`也指向那个`ThreadLocal`对象，并且这个指向是**弱引用**。
+
+使用弱引用的原因：如果使用强引用，即使tl不再引用`ThreadLocal`对象了，那么它也不能被回收。因为`key`还指向着它，并且这个`key`的生命周期是与当前线程挂钩的，只要当前线程不死亡，那么就一直存在着`ThreadLocal`就会一直占着内存，导致内存泄漏。而如果使用若引用，只要`tl`不再指向`ThreadLocal`对象，那么`GC`一遇到它就会回收，不会有内存泄漏问题。
+
+但还有一个问题，就是如果只`set`值，在`key`被`GC`置为`null`后，就无法获取到`value`值了，因此使用完后，需要调用`remove`方法把整个`entry`移除，否则就会造成内存泄漏
+
+![image-20201203215950747](https://gitee.com/p8t/picbed/raw/master/imgs/20201203215952.png)

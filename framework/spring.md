@@ -8,15 +8,15 @@
 
 `@Bean`
 
-- 配合`Configuration`使用，加在方法上，会在`IOC`容器中注册`Bean`对象。方法返回值添加到容器中，`id`默认为方法名，可以给`Bean`显示指定`value`值作为`id`
-- 方法参数从`IOC`容器中获取，默认不写`Autowired`
+- 配合`@Configuration`使用，加在方法上，会在`IOC`容器中注册`Bean`对象。方法返回值作为`Bean`对象添加到容器中，`id`默认为方法名，可以给`Bean`显示指定`value`值作为`id`
+- 方法参数自动从`IOC`容器中获取，默认不写`Autowired`
 
-- `@ComponentScan`
-  - 配合`Configuration`使用，指定扫描包路径。只有被扫描到的`Component`才会被注册到`IOC`容器
+`@ComponentScan`
+  - 配合`@Configuration`使用，指定扫描包路径。只有被扫描到的`Component`才会被注册到`IOC`容器
 - 小结
-  - `Configuation`等价于`<Beans></Beans>`
-  - `Bean`等价于`<Bean></Bean>`
-  - `ComponentScan`等价于`<context:component-scan base-package="com.xxx"/>`
+  - `@Configuation`等价于`<Beans></Beans>`
+  - `@Bean`等价于`<Bean></Bean>`
+  - `@ComponentScan`等价于`<context:component-scan base-package="com.xxx"/>`
 
 ### 注册Bean
 
@@ -30,16 +30,16 @@
 
 - 可以写基本类型
 - 可以写`#{}`表达式
-- 可以写`${}`，从外部配置文件中获取，通过`PropertySource`加载配置文件
+- 可以写`${}`，从外部配置文件中获取，通过`@PropertySource`加载配置文件
 
 ### 自动装配
 
 `@Autowired`
 
 - 根据属性类型注入，如果有多个则选取对象名去匹配
-- `required`指定为`false`，则找不到就不装配
+- 如果`required`指定为`false`，则找不到就不装配
 - 标在方法上
-  - Spring会在初始化`Bean`时调用这个方式，方法参数从`IOC`容器中获取
+  - `Spring`会在初始化`Bean`时调用这个方式，方法参数从`IOC`容器中获取
 - 标在有参构造器上
   - 则容器初始化`Bean`时不会调用默认的无参构造，而是调用这个有参构造
 - 标在方法参数上
@@ -75,13 +75,21 @@
 
 - 针对单例`Bean`，进行懒加载，即获取时才创建对象
 
-## 注册组件方式
+## 组件注册方式
 
 1、`@ComponentScan + @Component`，适用于给自己编写的类注册组件
 
 2、`@Configuration + @Bean`，适用于注册第三方的组件
 
 3、`@ImportResource`，导入`xml`配置文件
+
+4、`@Import`，快速注册`Bean`。只要标注在配置方法上，然后`value`写上需要注册的类，就会自动调用无参构造进行注册
+
+```java
+@Import({User.class, Book.class}) // 快速注册User和Book, 组件名为全类名
+@Configuration
+public class ...
+```
 
 ## AOP
 

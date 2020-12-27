@@ -96,7 +96,6 @@ HTTP最初的版本。它只有一个方法（GET），没有首部，其设计�
 
 ```
 GET https://www.bilibili.com HTTP/1.1
-
 accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
 accept-encoding: gzip, deflate, br
 accept-language: en,zh-CN;q=0.9,zh;q=0.8,en-GB;q=0.7,en-US;q=0.6
@@ -111,7 +110,6 @@ user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
 
 ```
 HTTP/1.1 200 OK
-
 cache-control: max-age=30
 content-encoding: gzip
 content-type: text/html; charset=utf-8
@@ -359,7 +357,7 @@ Set-Cookie: secure; HttpOnly; SameSite=Lax
 
 请求顺序从上至下
 
-### memory cache
+### 1、memory cache
 
 网页上几乎所有的资源都进memory cache，短期存储。常规情况下，浏览器的 TAB 关闭后该次浏览的 memory cache 便告失效。而如果极端情况下 (例如一个页面的缓存就占用了超级多的内存)，那可能在 TAB 没关闭之前，排在前面的缓存就已经失效了。
 
@@ -367,13 +365,13 @@ memory cache 机制保证了一个页面中如果有两个相同的请求 (例�
 
 在从 memory cache 获取缓存内容时，浏览器会忽视例如 `max-age=0`, `no-cache` 等头部配置。例如页面上存在几个相同 `src` 的图片，即便它们可能被设置为不缓存，但依然会从 memory cache 中读取。这是因为 memory cache 只是短期使用，大部分情况生命周期只有一次浏览而已。而 `max-age=0` 在语义上普遍被解读为“不要在下次浏览时使用”，所以和 memory cache 并不冲突。
 
-### disk cache
+### 2、disk cache
 
 disk cache 也叫 HTTP cache，顾名思义是存储在硬盘上的缓存，因此它是持久存储的，是实际存在于文件系统中的。而且它允许相同的资源在跨会话，甚至跨站点的情况下使用，例如两个站点都使用了同一张图片。
 
 disk cache 会严格根据 HTTP 头信息中的各类字段来判定哪些资源可以缓存，哪些资源不可以缓存；哪些资源是仍然可用的，哪些资源是过时需要重新请求的。当命中缓存之后，浏览器会从硬盘中读取资源，虽然比起从内存中读取慢了一些，但比起网络请求还是快了不少的。绝大部分的缓存都来自 disk cache。
 
-#### 强制缓存 (也叫强缓存)
+#### 2.1 强制缓存 (也叫强缓存)
 
 强制缓存的含义是，当客户端请求后，会先访问缓存数据库看缓存是否存在。如果存在则直接返回；不存在则请求真的服务器，响应后再写入缓存数据库。
 
@@ -413,7 +411,7 @@ Cache-control: max-age=2592000
 - `public`：所有的内容都可以被缓存 (包括客户端和代理服务器， 如 CDN)
 - `private`：所有的内容只有客户端才可以缓存，代理服务器不能缓存。默认值。
 
-#### 对比缓存 (也叫协商缓存)
+#### 2.2 对比缓存 (也叫协商缓存)
 
 当强制缓存失效（超过规定时间）时，就需要使用对比缓存，由服务器决定缓存内容是否失效。
 
@@ -447,7 +445,7 @@ Cache-control: max-age=2592000
 
 `Etag` 存储的是文件的特殊标识(一般都是 hash 生成的)，服务器存储着文件的 `Etag` 字段。之后的流程和 `Last-Modified` 一致，只是 `Last-Modified` 字段和它所表示的更新时间改变成了 `Etag` 字段和它所表示的文件 hash，把 `If-Modified-Since` 变成了 `If-None-Match`。服务器同样进行比较，命中返回 304, 不命中返回新资源和 200。
 
-### service worker
+### 3、service worker
 
 上述的缓存策略以及缓存/读取/失效的动作都是由浏览器内部判断 & 进行的，我们只能设置响应头的某些字段来告诉浏览器，而不能自己操作。
 
@@ -536,6 +534,36 @@ SSL 通过对报文hash生成摘要来保证数据完整性，因为传输的是
 HTTP 也提供了 MD5 报文摘要功能，但不是安全的。例如报文内容被篡改之后，同时重新计算 MD5 的值，通信接收方是无法意识到发生了篡改。
 
 HTTPS 的报文摘要功能之所以安全，是因为它结合了加密和认证这两个操作。试想一下，加密之后的报文，遭到篡改之后，也很难重新计算报文摘要，因为无法轻易获取明文。
+
+## 攻击技术
+
+### 1、XSS
+
+跨站脚本攻击（`Cross-Site Scripting, XSS`），可以将代码注入到用户浏览的网页上，这种代码包括 `HTML`和 `JavaScript`。
+
+**分类**
+
+- 反射型：直接注入到`URL`参数
+- 存储型：脚本代码注入到数据库，有用户访问时，自动执行脚本
+- `DOM`型：不经过后端，直接在前端操作`DOM`元素
+
+**解决方案**
+
+- 对特殊字符编码。或者设置标签白名单，只允许用户使用指定的标签
+- 设置`Cookie`为`HttpOnly`，禁止通过`JS`获取`Cookie`
+
+### 2、CSRF
+
+跨站请求伪造（`Cross-site request forgery，CSRF`），是攻击者通过一些技术手段欺骗用户的浏览器去访问一个自己曾经认证过的网站并执行一些操作（如发邮件，发消息，甚至财产操作如转账和购买商品）。由于浏览器曾经认证过，所以被访问的网站会认为是真正的用户操作而去执行。
+
+`XSS`利用的是用户对指定网站的信任，`CSRF`利用的是网站对用户浏览器的信任。
+
+**解决方案**
+
+- 使用验证码，确保是用户行为，而非黑客行为
+- 检查`Referer`首部字段，检验访问站点来源
+- 使用`Anti CSRF Token`，服务端给网页表单设置一个`token`值，表单提交时把这个`token`值带回去，服务端进行验证
+- 加入自定义`Header`
 
 ## 参考资料
 

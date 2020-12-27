@@ -120,3 +120,151 @@ static Stream<Path> list(Path dir)
 static Stream<Path> walk(Path dir)
 ```
 
+## 日期
+
+### 1、`Date`类
+
+获取一个指定的日期不是很友好，而且日期格式交互较差
+
+```java
+public static void main(String[] args) {
+    Date date1 = new Date();
+    System.out.println(date1);
+    Date date2 = new Date(System.currentTimeMillis() + 60 * 60 * 1000);
+    System.out.println(date2);
+    // Fri Dec 11 22:01:33 CST 2020
+    // Fri Dec 11 23:01:33 CST 2020
+}
+```
+
+### 2、`SimpleDateFormat`类
+
+解决了`Date`类构造日期不方便以及显示格式的问题，但是构造一个相对日期还是不方便
+
+```java
+public static void main(String[] args) {
+    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+    // 构造日期对象
+    Date date = sdf.parse("2020-12-11 22:04:26");
+    System.out.println(date);
+
+    // 格式化显示日期
+    String f = sdf.format(new Date());
+    System.out.println(f); // 2020-12-11 22:08:52
+}
+```
+
+### 3、`Calendar`类
+
+方便构造一个相对日期，配合`SimpleDateFormat`使用，可以格式化显示一个相对时间
+
+```java
+public static void main(String[] args) {
+    Calendar c = Calendar.getInstance();
+    System.out.println(c.getTime());
+    c.add(Calendar.DATE, 1);	// 当前时间基础上, 增加一天
+    System.out.println(c.getTime());
+    // Fri Dec 11 22:17:09 CST 2020
+    // Sat Dec 12 22:17:09 CST 2020
+}
+```
+
+### 4、`Java8`新增
+
+`LocalDate、LocalTime、LocalDateTime`，分别表示日期，时间，日期时间
+
+```java
+public static void main(String[] args) {
+    LocalDate ld = LocalDate.now();
+    LocalTime lt = LocalTime.now();
+    LocalDateTime ldt = LocalDateTime.now();
+
+    System.out.println(ld);
+    System.out.println(lt);
+    System.out.println(ldt);
+    // 2020-12-12
+	// 09:21:28.751124700
+	// 2020-12-12T09:21:28.751124700
+    
+    LocalDateTime ldt1 = LocalDateTime.now();
+    System.out.println(ldt1.toLocalTime());
+    LocalDateTime ldt2 = ldt1.plusHours(1);
+    System.out.println(ldt2.toLocalTime());
+    // 09:32:59.199525900
+	// 10:32:59.199525900
+}
+```
+
+## JWT
+
+验证过程
+
+![image-20201213091709699](https://gitee.com/p8t/picbed/raw/master/imgs/20201213091711.png)
+
+用户不敏感信息可以写入`JWT`的`payload`区，比如用户id。如果需要放置敏感信息可以使用配合`redis`，或者只使用`redis`，这时候`token`只需要记录一个`UUID`，然后去`redis`取数据即可。
+
+### 组成
+
+- `header`：令牌类型，签名算法。使用base64编码
+
+  ```json
+  {
+    "alg": "HS256",
+    "typ": "JWT"
+  }
+  ```
+
+- `payload`：存放非敏感数据。使用base64编码
+
+  ```json
+  {
+    "sub": "1234567890",
+    "name": "John Doe",
+    "admin": true
+  }
+  ```
+
+- `signature`：对`header + payload + salt`进行签名
+
+### 使用
+
+```java
+class T {
+    String SALT = "%#)@^%&3@43#BDS&^WE45UHBDC^DTFUBafysdfb7sgrfhb^%(";
+    Algorithm ALGORITHM = Algorithm.HMAC256(SALT);
+
+    @Test
+    void contextLoads() {
+        Calendar c = Calendar.getInstance();
+        c.add(Calendar.MINUTE, 1);
+        Date date = c.getTime();
+
+        // 获取token  
+        // 获取后写入响应体, 让浏览器保存在本地
+        // 然后前端每次请求都携带这个token
+        String token = JWT.create()
+            // header不需要指定用了什么签名算法
+            // 在签名时, 会把用到的签名算法自动填写进去, 也就是下面的sign()方法
+            
+            // payload
+            .withClaim("userId", "123")
+            .withExpiresAt(date)
+            
+            // signature
+            .sign(ALGORITHM);
+
+        // 验证token  验证失败会抛出异常
+        // 通过拦截器对受限资源统一验证
+        DecodedJWT decodedJWT = JWT.require(ALGORITHM)
+            .build()
+            .verify(token);
+
+        // 获取payload信息
+        // 对验证过的token, 可以从中获取用户信息
+        String userId = decodedJWT.getClaim("userId").asString();
+        System.out.println(userId);	// 123
+    }
+}
+```
+
