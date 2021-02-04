@@ -34,10 +34,10 @@
 
 ### 自动装配
 
-`@Autowired`
+#### @Autowired
 
 - 根据属性类型注入，如果有多个则选取对象名去匹配
-- 如果`required`指定为`false`，则找不到就不装配
+- 如果`required`属性指定为`false`，则找不到就不装配
 - 标在方法上
   - `Spring`会在初始化`Bean`时调用这个方式，方法参数从`IOC`容器中获取
 - 标在有参构造器上
@@ -45,19 +45,19 @@
 - 标在方法参数上
 - 无论怎么放，都是从`IOC`容器中装配
 
-`@Qualifier`
+#### @Qualifier
 
-- 根据属性名称注入，配合`Autowired`使用，可以指定注入对象的`id`
+- 根据属性名称注入，配合`@Autowired`使用，可以指定注入对象的`id`
 
-`@Primary`
+#### @Primary
 
-- 在注入`Bean`的时候加上`Primary`，则`Autowired`会首选它装配。如果`Autowired`配合了`Qualifier`使用，则按`Qualifier`装配
+- 在注入`Bean`的时候加上`Primary`，则`@Autowired`会首选它装配。如果`@Autowired`配合了`@Qualifier`使用，则按`@Qualifier`装配
 
-`@Resource`
+#### @Resource
 
 - `javax`包下的，相当于上面两个合起来，不支持`Primary`
 
-`@Inject`
+#### @Inject
 
 - `javax`包下的，需要导包，支持`Primary`
 

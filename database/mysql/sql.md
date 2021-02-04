@@ -1,6 +1,6 @@
 > mysql8.0.18
 
-## 一. 数据库
+## 一、数据库
 
 ### 创建
 
@@ -26,7 +26,7 @@ USE test_db;
 SHOW DATABASES;
 ```
 
-## 二. 表
+## 二、表
 
 ### 创建
 
@@ -90,7 +90,7 @@ RENAME TO passage;
 DESC article;
 ```
 
-## 三. INSERT
+## 三、INSERT
 
 普通插入
 ```mysql
@@ -111,7 +111,7 @@ CREATE TABLE newtable AS
 SELECT * FROM oldtable;
 ```
 
-## 四. UPDATE
+## 四 、UPDATE
 
 ```mysql
 UPDATE mytable
@@ -119,7 +119,7 @@ SET col = val
 WHERE id = 1;
 ```
 
-## 五. DELETE
+## 五、DELETE
 
 ```mysql
 DELETE FROM mytable
@@ -131,7 +131,7 @@ TRUNCATE TABLE 可以清空表
 TRUNCATE TABLE mytable;
 ```
 
-## 六. SELECT
+## 六 、   SELECT
 
 DISTINCT
 相同值只会出现一次。它作用于所有列，也就是说所有列的值都相同才算相同。
@@ -163,7 +163,7 @@ FROM mytable
 LIMIT 2, 3;
 ```
 
-## 七. 排序
+## 七、排序
 
 ASC ：升序（默认）
 DESC ：降序
@@ -176,7 +176,7 @@ FROM mytable
 ORDER BY col1 DESC, col2 ASC;
 ```
 
-## 八. 通配符
+## 八、通配符
 
 只能用于文本字段。
 
@@ -196,7 +196,7 @@ WHERE col LIKE '[^AB]%'; -- 不以 A 和 B 开头的任意文本
 
 不要滥用通配符，通配符位于开头处匹配会非常慢。
 
-## 九. 分组
+## 九、 分组
 
 把具有相同的数据值的行放在同一组中。
 
@@ -236,7 +236,7 @@ HAVING num >= 2;
 - NULL 的行会单独分为一组；
 - 大多数 SQL 实现不支持 GROUP BY 列具有可变长度的数据类型。
 
-##  十. 子查询
+##  十、子查询
 
 子查询中只能返回一个字段的数据。
 
@@ -249,7 +249,7 @@ WHERE col1 IN (SELECT col2
                FROM mytable2);
 ```
 
-## 十一. 连接
+## 十一、连接
 
 连接用于连接多个表，使用 JOIN 关键字，并且条件语句使用 ON 而不是 WHERE。
 
@@ -312,7 +312,7 @@ ON Customers.cust_id = Orders.cust_id;
 >
 > At the parser stage, queries with right outer join operations are converted to equivalent queries containing only left join operations. 
 
-## 十二. 组合查询
+## 十二、组合查询
 
 组合查询相当于集合的并操作, 对数据进行合并, `UNION`会去除重复的行, `UNION ALL` 则不会
 
@@ -356,7 +356,7 @@ ROLLBACK TO tag;
 COMMIT;
 ```
 
-##  十四. 权限管理
+##  十四、权限管理
 
 MySQL 的账户信息保存在 mysql 这个数据库中。
 
@@ -418,3 +418,37 @@ REVOKE SELECT, INSERT ON mydatabase.* FROM username;
 ```sql
 ALTER USER username IDENTIFIED WITH mysql_native_password BY 'password';
 ```
+
+## 十五、函数
+
+```mysql
+# 字符函数
+concat(..str) # 拼接字符串
+length(str) # 返回字节长度, 中文占3或4个字节
+char_length(str) # 返回字符个数, 中文占1个
+substring(str, start, length) # 起始从1开始
+trim(str)
+trim(x from str) # 去除两端的x
+upper()
+lower()
+strcmp() # x小
+
+
+# 数学函数
+# 日期函数
+# 流程控制函数
+
+
+ifnull(column, "asdf") # 如果前一个为null, 则使用后一个默认值
+max()
+min()
+# 排名
+row_number() over(order by column asc) # 连续排名
+rank() over(order by column asc) 	   # 相同跳跃排名
+dense_rank() over(order by column asc) # 相同连续排名
+
+database() # 返回当前使用的数据库
+version()  # 返回mysql版本
+user()	   # 返回登录用户名和登录ip
+```
+

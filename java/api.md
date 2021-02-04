@@ -1,6 +1,6 @@
 ## 文件
 
-### File
+### `File`
 
 构造函数
 
@@ -15,7 +15,7 @@ File file = new File("dir", "file");
 
 **下面三个都是`JDK1.7`新出的，用来取代`File`**
 
-### Paths
+### `Paths`
 
 ```java
 public static Path get(String first, String... more) {
@@ -26,7 +26,7 @@ public static Path get(URI uri) {
 }
 ```
 
-### Path
+### `Path`
 
 #### 创建
 
@@ -63,7 +63,7 @@ Path path = Path.of("/a/b/c/1.jpg");
 path.relativize(Path.of("/a/b/d"));	  // ../../d
 ```
 
-### Files
+### `Files`
 
 > 原文链接：[暹罗猫](https://blog.csdn.net/qq877728715/article/details/104499687/)
 
@@ -122,7 +122,7 @@ static Stream<Path> walk(Path dir)
 
 ## 日期
 
-### 1、`Date`类
+### 1、`Date`
 
 获取一个指定的日期不是很友好，而且日期格式交互较差
 
@@ -137,7 +137,7 @@ public static void main(String[] args) {
 }
 ```
 
-### 2、`SimpleDateFormat`类
+### 2、`SimpleDateFormat`
 
 解决了`Date`类构造日期不方便以及显示格式的问题，但是构造一个相对日期还是不方便
 
@@ -155,7 +155,7 @@ public static void main(String[] args) {
 }
 ```
 
-### 3、`Calendar`类
+### 3、`Calendar`
 
 方便构造一个相对日期，配合`SimpleDateFormat`使用，可以格式化显示一个相对时间
 
@@ -267,4 +267,127 @@ class T {
     }
 }
 ```
+
+## 自定义异常
+
+```java
+public class CustomException extends RuntimeException {
+
+    public CustomException() {
+        super();
+    }
+
+    public CustomException(String message) {
+        super(message);
+    }
+}
+```
+
+## JUnit 5
+
+### 1、注解
+
+| --              | --                                                        |
+| --------------- | --------------------------------------------------------- |
+| `@DisplayName`  | 标注测试类、方法的名称                                    |
+| `@BeforeEach`   | 每一个单元测试之前都执行，一个`@Test`方法即是一个单元测试 |
+| `@AfterEach`    | 每一个单元测试之后都执行                                  |
+| `@BeforeAll`    | 所有单元测试之前执行一次，方法必须是静态方法              |
+| `@AfterAll`     | 所有单元测试之后执行一次，方法必须是静态方法              |
+| `@Disabled`     | 标注的单元测试不会执行                                    |
+| `@Timeout`      | 规定方法超时时间，超出则抛异常                            |
+| `@RepeatedTest` | 测试次数                                                  |
+
+### 2、assert
+
+一旦有断言失败，则后面的代码都不会执行
+
+| --                    | --                               |
+| --------------------- | -------------------------------- |
+| `assertEquals()`      | 对象用`equals`判断，值用`==`判断 |
+| `assertSame()`        | 判断是否为同一个对象             |
+| `assertArrayEquals()` | 判断数组元素是否相等             |
+| `assertAll()`         | 里面断言都成功才通过测试         |
+| `assertNotNull()`     | 不为`null`                       |
+| `assertTimeout()`     | 超时                             |
+| `fail()`              | 执行到这个方法直接失败           |
+
+### 3、assume
+
+和断言类似，但是它只会终止方法，并不会报告测试失败
+
+## Jackson
+
+### JDK
+
+```java
+User user = new User();
+
+// 序列化为字符串
+ByteArrayOutputStream bao = new ByteArrayOutputStream();
+ObjectOutputStream oos = new ObjectOutputStream(bao);
+oos.writeObject(user);
+String s = bao.toString(StandardCharsets.ISO_8859_1);
+oos.close();
+
+// 反序列化
+ByteArrayInputStream bis = new ByteArrayInputStream(s.getBytes(StandardCharsets.ISO_8859_1));
+ObjectInputStream ois = new ObjectInputStream(bis);
+User user1 = (User) ois.readObject();
+ois.close();
+
+System.out.println(user1);
+```
+
+### 序列化
+
+```java
+ObjectMapper om = new ObjectMapper();
+String s = om.writeValueAsString(new User());
+System.out.println(s);
+```
+
+### 反序列化
+
+不涉及泛型
+
+```java
+ObjectMapper om = new ObjectMapper();
+String ser = om.writeValueAsString(new User());
+User deser = om.readValue(ser, User.class);
+System.out.println(deser);
+```
+
+涉及泛型
+
+```java
+ObjectMapper om = new ObjectMapper();
+List<User> list = List.of(new User(), new User());
+String ser = om.writeValueAsString(list);
+List<User> deser = om.readValue(ser, new TypeReference<>(){});
+System.out.println(deser);
+
+Map<String, User> map = Map.of("a", new User(), "b", new User());
+String ser = om.writeValueAsString(map);
+Map<String, User> deser = om.readValue(ser, new TypeReference<>(){});
+System.out.println(deser);
+
+Set<User> set = Set.of(new User());
+String ser = om.writeValueAsString(set);
+Set<User> deser = om.readValue(ser, new TypeReference<>(){});
+System.out.println(deser);
+```
+
+### 注解
+
+| --                      | --                                                           |
+| ----------------------- | ------------------------------------------------------------ |
+| `@JsonProperty`         | 标在属性上。指定序列化后的key                                |
+| `@JsonIgnore`           | 标在属性上。序列化时忽略该属性                               |
+| `@JsonIgnoreProperties` | 标在类上。自动忽略无法序列化/反序列化的属性（无`Getter/Setter`），也可以指定忽略 |
+| `@JsonFormat`           | 标在属性上。指定日期格式化                                   |
+
+
+
+
 

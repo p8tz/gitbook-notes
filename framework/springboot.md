@@ -1,3 +1,26 @@
+## 默认文件加载顺序
+
+### 1、配置文件
+
+```shell
+classpath:/
+classpath:/config/
+file:./			# jar包当前目录
+file:./config/*/
+file:./config/
+# 加载顺序从上往下, 下面的会覆盖上面的
+```
+
+### 2、静态资源文件
+
+```shell
+classpath:/static/
+classpath:/public/
+classpath:/resources/
+classpath:/META-INF/resources/
+classpath:/
+```
+
 ## 加载指定配置文件
 
 配置文件`person.properties`
@@ -62,11 +85,11 @@ class SpringbootTestApplicationTests {
 ### 注意
 
 - `PropertySource`不支持`yml`读取
-- 对于默认配置文件（`application.yml/properties`）不需要用`PropertySource`指定
+- 对于默认配置文件（`application.yml/.properties`）不需要用`@PropertySource`指定
 
 ## 条件注册Bean
 
-需要用到`@Conditional`系列注解
+需要用到`@ConditionalOn*`系列注解，其中`@Conditional`是基础
 
 场景：根据操作系统注册不同的Bean
 
@@ -202,7 +225,7 @@ logging:
 	<!-- 控制台输出 -->
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %highlight(%-5level) %cyan(%logger{35}) - %highlight(%msg%n)</pattern>
         </encoder>
     </appender>
     <!-- 文件输出 -->
@@ -360,16 +383,26 @@ spring:
       pool-prepared-statements: false
       # https://github.com/alibaba/druid/wiki/DruidDataSource%E9%85%8D%E7%BD%AE%E5%B1%9E%E6%80%A7%E5%88%97%E8%A1%A8
 
-      # 监控统计用的filter:stat
-      # 日志用的filter:log4j
-      # 防御sql注入的filter:wall
-      filters: stat, wall, log4j
-      # 缺省多个DruidDataSource的监控数据是各自独立的，在Druid-0.2.17版本之后，支持配置公用监控数据
-      use-global-data-source-stat: true
-      connection-properties: druid.stat.slowSqlMillis=3000;druid.stat.logSlowSql=true;druid.stat.mergeSql=true
-      # https://github.com/alibaba/druid/wiki/%E6%B3%A8%E8%A7%A3%E6%96%B9%E5%BC%8F%E9%85%8D%E7%BD%AE%E7%9B%91%E6%8E%A7
-      # https://github.com/alibaba/druid/wiki/%E9%85%8D%E7%BD%AE_StatFilter
-
+	  # 监控相关, 监控web显示需要stat-view-servlet的配置
+      # filters: stat,wall,slf4j # 一键开启下面就不用enabled: true了
+      filter:
+        stat:
+          enabled: true
+          slow-sql-millis: 1000 # 超过1000ms的记为慢查询
+          log-slow-sql: true    # 记录慢查询日志
+          merge-sql: true
+        wall:
+          enabled: true
+        slf4j:
+          enabled: true
+      web-stat-filter: # uri对应的sql以及sssion监控
+        enabled: true
+        # 下面两个都是默认值, 分别为监控的url和排除的url
+        url-pattern: /*
+        exclusions: '*.js,*.gif,*.jpg,*.png,*.css,*.ico,/druid/*'
+      # Spring监控
+      aop-patterns: com.example.*
+      
       # Druid内置提供了一个StatViewServlet用于展示Druid的统计信息。
       # 这个StatViewServlet的用途包括：
       #   提供监控信息展示的html页面
@@ -381,10 +414,35 @@ spring:
         # 由于匹配规则不支持IPV6，配置了allow或者deny之后，会导致IPV6无法访问。
         allow: 127.0.0.1
         deny: 192.168.75.128
-        # StatView是否允许清空统计记录
+        # StatView是否允许清空统计记录[多个重置按钮]
         reset-enable: true
       # https://github.com/alibaba/druid/wiki/%E9%85%8D%E7%BD%AE_StatViewServlet%E9%85%8D%E7%BD%AE
+      
+      # 缺省多个DruidDataSource的监控数据是各自独立的，在Druid-0.2.17版本之后，支持配置公用监控数据
+      use-global-data-source-stat: true
 ```
+
+编码方式配置
+
+```java
+// 只需要注入一个javax.sql.DataSource的Bean即可
+@Configuration
+public class DruidConfig {
+    
+    @Bean
+    public DataSource dataSource() {
+        DruidDataSource dataSource = new DruidDataSource();
+        dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
+        dataSource.setUrl("jdbc:mysql://localhost:3306/db?serverTimezone=Asia/Shanghai");
+        dataSource.setUsername("root");
+        dataSource.setPassword("pwd");
+        // ...
+        return dataSource;
+    }
+}
+```
+
+
 
 ## 集成Redis和Redisson
 
@@ -411,7 +469,7 @@ spring:
 
 ```java
 @Configuration
-public class RedisConfig extends CachingConfigurerSupport {
+public class RedisConfig /*extends CachingConfigurerSupport*/ {
     private final StringRedisSerializer keySerializer = new StringRedisSerializer();
 	private final GenericJackson2JsonRedisSerializer valueSerializer = new GenericJackson2JsonRedisSerializer();
     // private final Jackson2JsonRedisSerializer<Object> serializer = getSerializer();
@@ -420,7 +478,7 @@ public class RedisConfig extends CachingConfigurerSupport {
      * SpringBoot默认配置的redisTemplate加了如下注解, 表示如果已存在该bean则不加载
      * @ConditionalOnMissingBean(name = "redisTemplate")
      * 因此自定义的redisTemplate会覆盖默认的
-     * 这里没有选择
+     * 这里没有选择覆盖
      */
     @Bean("redis")									  // 如果引入了redisson, 必须指定这个Bean
     public RedisTemplate<String, Object> redisTemplate(@Qualifier("redissonConnectionFactory")RedisConnectionFactory connectionFactory) {
@@ -429,7 +487,6 @@ public class RedisConfig extends CachingConfigurerSupport {
 
         // 对key使用String就行
         template.setKeySerializer(keySerializer);
-
         // 配置使用Jackson序列化对象
         template.setValueSerializer(valueSerializer);
 
@@ -537,14 +594,28 @@ RedissonClient redisson;
 
 ## 资源映射
 
-对于静态资源，`SpringBoot`会自动去以下目录查找
+> [static-content](https://docs.spring.io/spring-boot/docs/current/reference/html/spring-boot-features.html#boot-features-spring-mvc-static-content)
 
-- `classpath:/META-INF/resources/`
-- `classpath:/resources/`
+对于静态资源，`SpringBoot`会自动去以下目录查找。当然，只有`Controller`不能处理时才会交给静态资源处理器处理，如果还找不到那就404
+
 - `classpath:/static/`
 - `classpath:/public/`
+- `classpath:/resources/`
+- `classpath:/META-INF/resources/`
+- `classpath:/`
 
-有时候用户上传的文件可能不存在这里面，就需要自己配置查找路径，如果不配置，即使路径正确也不能访问，因为服务器不能对外暴露真实路径。
+可以为静态资源加一个公共请求前缀，方便用于拦截器统一放行
+
+```yaml
+# 如果原来static目录下有一个文件叫1.jpg
+# 不加上下面这个配置,通过protocol:ip:port/1.jpg访问
+# 加上之后就是protocol:ip:port/resources/1.jpg
+spring:
+  mvc:
+    static-path-pattern: /resources/**
+```
+
+但是有时候用户上传的文件可能不存在这里面，就需要自己配置查找路径，如果不配置，即使路径正确也不能访问，因为服务器不能对外暴露真实路径。
 
 通过`Java`代码配置
 
@@ -562,6 +633,23 @@ public class MainConfig {
         };
     }
 }
+```
+
+通过配置文件配置
+
+```yaml
+spring:
+  mvc:
+    static-path-pattern: /upload/**
+  resources:
+    static-locations:
+      - classpath:/static/
+      - classpath:/public/
+      - classpath:/resources/
+      - classpath:/META-INF/resources/
+      - classpath:/
+      # 服务器上的真实路径
+      - file:D:/upload/
 ```
 
 ## 上传文件
@@ -584,7 +672,7 @@ public String addImage(@RequestParam("file") MultipartFile file) {
 
     // 获取上传文件名和上传路径
     String fileName = file.getOriginalFilename();
-    String filePath = fileUploadProperties.getUploadPathAndMkdirs();
+    String filePath = fileUploadProperties.getUploadPath();
 
     // 构建上传uri
     String uri = filePath + fileName;
@@ -939,7 +1027,7 @@ public Result<Object> userInfo(@Validated(UserInfo.class) @RequestBody User user
 
 #### 2、配置使用`Redis`作为缓存介质
 
-只要自定义注入了`CacheManager`的`Bean`，`SpringBoot`就会使用其配置的缓存媒介以及缓存配置参数
+只要自定义注入了`CacheManager`的`Bean`，`SpringBoot`就会使用其配置的缓存工具以及缓存配置参数
 
 ```java
 @Configuration
@@ -1001,7 +1089,7 @@ public class CacheTestController {
 
 ![image-20201213200243689](https://gitee.com/p8t/picbed/raw/master/imgs/20201213200244.png)
 
-可以猜测`key`由三部分组成，第一部分是必须定义的`cacheNames`，代表该缓存数据与`user`相关联，语义上可以认为把该数据放在`user`这个缓存中。第二部分不知道。第三部分代表该缓存数据`id`，一般需要自己指定。上面显示的1来自方法参数`id`
+猜测`key`由三部分组成，第一部分是必须定义的`cacheNames`，代表该缓存数据与`user`相关联，语义上可以认为把该数据放在`user`这个缓存中。第二部分不知道。第三部分代表该缓存数据`id`，一般需要自己指定。上面显示的1来自方法参数`id`
 
 本质上，对于加了缓存注解的方法，会在调用该接口时根据注解信息以及方法参数映射为一个用于访问缓存数据库的`key`，比如上面的`user::1`。然后去查看缓存中是否有数据
 
@@ -1078,7 +1166,7 @@ public class CacheTestController {
 
 有时候一个方法需要多次销毁缓存或多次添加缓存，且它们的规则不一样，这时就需要组合注解
 
-下面是从官网扒下来的例子，方法调用会销毁两个地方的缓存
+下面是官网的例子，方法调用会销毁两个地方的缓存
 
 ```java
 @Caching(evict = { @CacheEvict("primary"), @CacheEvict(cacheNames="secondary", key="#p0") })
@@ -1111,7 +1199,9 @@ public class BookRepositoryImpl implements BookRepository {
 
 当二级缓存开启时，当前事务提交或者`sqlSession`关闭后，缓存数据会放入二级缓存。查询时，先查二级缓存，再查一级缓存
 
-## 全局异常处理
+## 错误处理
+
+### 1、全局异常处理
 
 对于`Controller`层被`@RequestMapping`修饰的方法，`SpringBoot`提供了统一异常处理机制。
 
@@ -1119,7 +1209,7 @@ public class BookRepositoryImpl implements BookRepository {
 
 `Controller`类里面的方法都是添加`@RequestMapping`注解来匹配路由。**`ControllerAdvice`**类也一样，只不过它的方法不是匹配路由，而是匹配异常。用到`@ExceptionHandler`注解
 
-### 例子
+#### 例子
 
 下面是一个普通Controller类，可以认为里面会出现三类异常
 
@@ -1146,7 +1236,7 @@ public class ExceptionTestController {
 
 ```java
 @ResponseBody
-@ControllerAdvice(basePackages = "cc.p8t.blog.controller")
+@ControllerAdvice(basePackages = "cc.p8t.blog.controller") // 指明处理哪里的Controller异常
 // 可以使用@RestControllerAdvice合并上面两个
 public class ExceptionController {
 
@@ -1172,6 +1262,44 @@ public class ExceptionController {
 
 当`ExceptionTestController`类的`RequestMapping`方法出现异常时，便会自动进入`ExceptionController`类进行异常匹配，然后执行相应的方法
 
+### 2、404/5xx
+
+对于经常遇到的404和5xx错误，只需要在特定位置下放上页面，出错时`SpringBoot`就会自动跳转过去
+
+```sh
+templates/error/404.html
+templates/error/5xx.html
+static/error/404.html
+static/error/5xx.html
+```
+
+### 3、自定义异常错误信息
+
+作用机制和第二个一样，使自定义异常匹配对应的状态码信息
+
+```java
+@ResponseStatus(code = HttpStatus.NOT_FOUND, reason = "CUSTOM EXCEPTION")
+public class CustomException extends RuntimeException {
+
+    public CustomException() {
+        super();
+    }
+
+    public CustomException(String message) {
+        super(message);
+    }
+}
+```
+
+```html
+<body>
+    <!-- 取的是上面异常code值 -->
+	<h1 th:text="${status}">X</h1>
+    <!-- 取的是上面异常reason值 -->
+    <p th:text="${message}">X</p>
+</body>
+```
+
 ## lombok
 
 ```java
@@ -1181,3 +1309,117 @@ public class ExceptionController {
 @Slf4j
 ```
 
+## 获取请求参数
+
+```shell
+@PathVariable
+# 如果一个URL有多个路径变量可以用一个Map<String, String>统一接收
+
+@RequestHeader
+1、加参数获取指定请求头信息
+2、不加参数获取所有请求头信息, 后面参数可选如下
+    -HttpHeaders
+    -Map<String,String>
+```
+
+## 多Profile
+
+- `application.yml`一定会加载，因此把相同的配置写在这里面
+- 同名配置以选取的`profile`优先
+
+```yaml
+application.yml
+application-dev.yml
+application-pro.yml
+
+# 1、在application.yml激活要使用的profile
+spring:
+  profiles:
+    active: dev
+    
+# 2、以命令行方式激活profile
+java -jar xxx.jar --spring.profiles.active=dev
+```
+
+对于使用代码编写的配置，使用`@Profile`选择加载
+
+可以标注`@Profile`的注解
+
+- `@Component`
+- `@Configuration`
+- `@ConfigurationProperties`
+
+```java
+@Configuration
+public class DruidConfig {
+
+    @Profile("dev")
+    @Bean("dataSource")
+    public DataSource devDataSource() {
+        DruidDataSource dataSource = new DruidDataSource();
+        dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
+        dataSource.setUrl("jdbc:mysql://localhost:3306/db?serverTimezone=Asia/Shanghai");
+        dataSource.setUsername("root");
+        dataSource.setPassword("pwd");
+        return dataSource;
+    }
+    @Profile("pro")
+    @Bean("dataSource")
+    public DataSource proDataSource() {
+        DruidDataSource dataSource = new DruidDataSource();
+        dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
+        dataSource.setUrl("jdbc:mysql://10.2.5.251:3306/db?serverTimezone=Asia/Shanghai");
+        dataSource.setUsername("root");
+        dataSource.setPassword("pwd");
+        return dataSource;
+    }
+}
+```
+
+## 表单REST支持
+
+配置文件开启支持
+
+```yaml
+spring:
+  mvc:
+    hiddenmethod:
+      filter:
+        enabled: true
+```
+
+对表单不能发送的`post`和`delete`请求，填写一个隐藏输入框，`value`指定请求类型
+
+```html
+<form action="/user" method="get">
+</form>
+<form action="/user" method="post">
+</form>
+<form action="/user" method="post">
+    <input name="_method" value="PUT" type="hidden">
+</form>
+<form action="/user" method="post">
+    <input name="_method" value="DELETE" type="hidden">
+</form>
+<form action="/user" method="post">
+    <input name="_method" value="PATCH" type="hidden">
+</form>
+```
+
+原理：通过过滤器，判断是否为正常的`post`请求，然后获取`_method`参数的值，根据值对请求方式进行修改，然后放行
+
+## 过滤器
+
+过滤器是原生`Servlet`的功能，而拦截器是`Spring`提供的功能
+
+```java
+@Order(1)	// 多个过滤器时, 该数字越小越先执行
+@Component	// 只要注册Bean, SpringBoot就会自动调用
+public class FilterOrder1 implements javax.servlet.Filter {
+    @Override
+    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain chain) throws IOException, ServletException {
+        System.out.println("filter 1");
+        chain.doFilter(servletRequest, servletResponse);
+    }
+}
+```

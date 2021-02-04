@@ -325,6 +325,8 @@ $$吞吐量 = \frac{执行有效任务时间}{执行有效任务时间 + 垃圾�
 
 #### 7、G1
 
+> [详细信息](https://docs.oracle.com/en/java/javase/15/gctuning/garbage-first-g1-garbage-collector1.html#GUID-F1BE86FA-3EDC-4D4F-BDB4-4B044AD83180)
+
 `Garbage First`收集器是垃圾收集器技术发展历史上的里程碑式的成果，它开创了收集器面向局部收集的设计思路和基于`Region`的内存布局形式。
 
 `G1`把整个堆区划分为一个个等大小的`Region`，每一个`Region`都可以表示`Eden`区，`Survivor`区，`Tenured`区，此外还有`Humongous`区，专门用于存储大对象。当一个对象超过一个`Region`一半大小时就会被分配在`Humongous`区，如果一个`Humongous`不够分配，则会分配在连续的`Humongous Region`
@@ -333,17 +335,21 @@ $$吞吐量 = \frac{执行有效任务时间}{执行有效任务时间 + 垃圾�
 
 ``G1``是一个基于停顿时间模型的垃圾收集器，它会跟踪各个`Region`里面的垃圾堆积的“价值”大小，然后维护一个优先级列表，每次根据用户设定允许的收集停顿时间，优先处理回收价值收益最大的那些`Region`。 这种使用`Region`划分内存空间，以及具有优先级的区域回收方式，保证了`G1`收集器在有限的时间内获取尽可能高的收集效率。
 
-`G1`垃圾收集分为`Young GC，Mixed GC，Full GC`
+`G1`垃圾收集分为`Young GC，Mixed GC`。如果回收赶不上分配，则会启动`Full GC`
 
-`Young GC`与以往垃圾收集器一样，都是新生代满了后触发
+> [详细信息](https://hllvm-group.iteye.com/group/topic/44381)
 
-`Mixed GC`触发需要一个阈值，默认为全堆使用了45%
+`Young GC`与以往垃圾收集器一样，都是新生代满了后触发，全程`STW`。回收`Eden`区和`Survivor`区
 
-`Full GC`触发和`CMS`类似：没有足够的空间分配给新对象，也就是回收赶不上分配
+`Mixed GC`触发需要一个阈值，默认为老年代占全堆的45%，此时会开始并发标记过程，完成后把`Young GC`切换为`Mixed GC`，除了回收`Eden`和`Survivor`区外，根据设置的期望暂停时间，选择性的回收收益高的`old`区和`H`区
 
-如果我们不去计算用户线程运行过程中的动作（如使用写屏障维护记忆集的操作），`G1`收集器的 运作过程大致可划分为以下四个步骤： 
+![image-20210106184823699](https://gitee.com/p8t/picbed/raw/master/imgs/20210106184825.png)
 
-1）初始标记：串行，标记`GC Roots`能直接关联到的对象
+> [G1 垃圾收集器 Young GC 和 Mixed GC 有什么不同？](https://www.v2ex.com/t/682188)
+
+如果我们不去计算用户线程运行过程中的动作（如使用写屏障维护记忆集的操作），`G1`收集器的 全局标记过程大致可划分为以下四个步骤： 
+
+1）初始标记：串行，标记`GC Roots`能直接关联到的对象，这个阶段借用`YoungGC STW`时期完成
 
 2）并发标记：并行，可达性分析，递归遍历整个对象图
 
@@ -610,3 +616,305 @@ private static Connection getConnection(
 OSGI模块化部署，类加载请求不再是简单的向上委托，而是分多种情况进行委托加载
 
 #### 第四次破坏
+
+### 7、破坏双亲委派模型实战
+
+> [参考](https://www.bilibili.com/video/BV1CJ411g7U4)
+
+1）前置知识：全盘负责机制，**如果一个类由A类加载器加载，在不特殊指定的情况下，它所依赖的所有类都由A类加载器来加载**
+
+2）目的：在同一个`JVM`中加载两个全类名相同的类
+
+3）操作步骤：
+
+1、自定义类加载器
+
+2、重写双亲委派模型核心方法`loadClass()`
+
+3、`new`两个自定义类加载器来加载类
+
+**环境准备**
+
+现有两个jar包：`A.jar`和`B.jar`，结构如下。现在需要把两个`C.class`都加载进同一`JVM`，否则`A`和`B`总有一个不能工作
+
+```yaml
+A.jar
+--com
+----example
+------A.class # 依赖当前目录下的C.class
+------C.class # 版本为1.0
+
+B.jar
+--com
+----example
+------B.class # 依赖当前目录下的C.class
+------C.class # 版本为2.0
+```
+
+```java
+// A.jar
+package com.example;
+public class A {
+    public A() {
+        if ((new C()).version().equals("v1.0")) {
+            System.out.println("A OK");
+        } else {
+            System.out.println("A ERROR");
+        }
+    }
+}
+
+package com.example;
+public class C {
+    public String version() {
+        return "v1.0";
+    }
+}
+
+// B.jar
+package com.example;
+public class B {
+    public B() {
+        if ((new C()).version().equals("v2.0")) {
+            System.out.println("B OK");
+        } else {
+            System.out.println("B ERROR");
+        }
+    }
+}
+
+package com.example;
+public class C {
+    public String version() {
+        return "v2.0";
+    }
+}
+```
+
+下面自定义类加载来加载分别加载A和B，进而引入不同的C，当然也可以直接加载两个C
+
+```java
+public class MyClassLoader extends ClassLoader {
+    String jarDirName;
+    String jarBaseName;
+    // 加载过的类不再重新加载
+    Map<String, Class<?>> cache;
+
+    // 获取jar包绝对路径
+    public MyClassLoader(String jarDirName, String jarBaseName) {
+        this.jarDirName = jarDirName;
+        this.jarBaseName = jarBaseName;
+        cache = new HashMap<>();
+    }
+
+    @Override
+    public Class<?> loadClass(String name) throws ClassNotFoundException {
+        if (!name.startsWith("com.example")) {
+            return super.loadClass(name);
+        }
+        if (cache.containsKey(name)) {
+            return cache.get(name);
+        }
+        byte[] bytecode;
+        try {
+            // 获取字节码文件的字节数组
+            bytecode = getBytes(name);
+            // Converts an array of bytes into an instance of class {@code Class}.
+            return defineClass(name, bytecode, 0, bytecode.length);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return super.loadClass(name);
+    }
+
+    // 获取类字节码, 忽略异常处理
+    private byte[] getBytes(String className) throws IOException {
+        // 把全类名改为路径形式
+        String tmp = className.replaceAll("\\.", "/");
+        JarFile jar = new JarFile(jarDirName + File.separator + jarBaseName);
+        // 需要加载的.class文件
+        JarEntry entry = jar.getJarEntry(tmp + ".class");
+        InputStream is = jar.getInputStream(entry);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        int len;
+        byte[] bytes = new byte[1024];
+        while ((len = is.read(bytes)) != -1) {
+            baos.write(bytes, 0, len);
+        }
+        byte[] data = baos.toByteArray();
+        is.close();
+        baos.close();
+        return data;
+    }
+}
+```
+
+```java
+public static void main(String[] args) throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException, MalformedURLException {
+    String jarDirName = System.getProperty("user.dir") + File.separator + "lib";
+
+    MyClassLoader cl1 = new MyClassLoader(jarDirName, "A.jar");
+    MyClassLoader cl2 = new MyClassLoader(jarDirName, "B.jar");
+
+    Class<?> a = cl1.loadClass("com.example.A");
+    Class<?> b = cl2.loadClass("com.example.B");
+
+    System.out.println(a.getClassLoader());
+    System.out.println(b.getClassLoader());
+
+    a.getConstructor().newInstance();
+    b.getConstructor().newInstance();
+
+    // 可以直接使用URLClassLoader, 这样就不用手动把字节码转数组了, 注意要把parent要指定为null
+    // URLClassLoader cl3 = new URLClassLoader(new URL[]{new URL("file:" + jarDirName + File.separator + "A.jar")}, null);
+    // URLClassLoader cl4 = new URLClassLoader(new URL[]{new URL("file:" + jarDirName + File.separator + "B.jar")}, null);
+    //
+    // Class<?> a = cl3.loadClass("com.example.A");
+    // Class<?> b = cl4.loadClass("com.example.B");
+    //
+    // System.out.println(a.getClassLoader());
+    // System.out.println(b.getClassLoader());
+    //
+    // a.getConstructor().newInstance();
+    // b.getConstructor().newInstance();
+}
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+## 五、JVM参数设置
+
+> [详细信息](https://docs.oracle.com/en/java/javase/11/tools/java.html#GUID-BE93ABDC-999C-4CB5-A88B-1994AAAC74D5)
+
+### 1、参数分类
+
+```bash
+-   : 标准参数
+-X  : 非标准参数, 变化较小
+-XX : 非标准参数, 变化较大, 可能被移除
+```
+
+### 2、杂项
+
+**打印设置的参数信息**
+
+- `-XX:+PrintCommandLineFlags`
+
+**执行引擎设置**
+
+- `-Xint `：仅使用解释器
+- `-Xcomp`：仅使用JIT
+- `-Xmixed`：混合模式（默认）
+
+**打印GC信息**
+
+- `-XX:+PrintGCDetails`：在`JDK11`已废弃
+- `-Xlog:gc*`
+
+**查看运行时信息**
+
+- `jps`：查看当前运行中的`JVM`进程及`pid`
+- `jinfo -flag <arg> pid`：查看某一参数信息
+- `jinfo -flags pid`：查看所有参数信息（不全）
+- `jstat -gc pid`：查看gc情况
+
+**关闭指针压缩**
+
+- `-XX:-UseCompressedOops`
+
+### 3、堆区
+
+- `-Xms?m`：初始堆空间大小（默认为物理内存/64）
+
+  > `-XX:InitialHeapSize=?m`
+
+- `-Xmx?m`：最大堆空间大小（默认为物理内存/4）
+
+  > `-XX:MaxHeapSize=?m`
+
+- `-Xmn?m`：设置新生代的大小
+
+  > `-XX:MaxNewSize=?m`
+  >
+  > 经测试，优先级高于`-XX:NewRatio`，并且不会超出`-Xmx`的大小。其次老年代至少会有512k，也就是说`Xmn`最多只能分配到`Xmx-512k`的容量
+
+- `-XX:NewRatio=?`：配置老年代与新生代内存大小比例（默认2）
+
+- `-XX:SurvivorRatio=?`：设置新生代中Eden和S0/S1空间的比例（默认8）
+
+  > Sets the ratio between eden space size and survivor space size. By default, this option is set to 8.
+  > 官网说默认是8，但实际测试为6，即使关了自适应内存分配策略还是6，
+  > 只能手动指定才能变为8
+
+- `-XX:MaxTenuringThreshold=?`：设置新生代垃圾的最大年龄（默认15）
+
+  > 年龄信息在对象头中，占4位，所以最大也只能设置为15
+
+- `-XX:-UseAdaptiveSizePolicy`：关闭自适应内存分配策略
+- `-XX:HandlePromotionFailure=?(boolean)`：是否启用空间分配担保
+
+### 4、方法区
+
+> 方法区在1.7的实现为永久代（PermGen），是堆区逻辑上的一部分。1.8实现为元空间（MetaSpace），用的是本地内存
+>
+> 名字变了，对应设置命令也变了
+
+JDK1.7（win10）
+
+- `-XX:PermSize=?m`：初始大小（默认`20.75M`）
+- `-XX:PermMaxSize=?m`：最大大小（默认`82M`）
+
+JDK1.8（win10）
+
+- `-XX:MetaspaceSize=?m`：初始大小（默认`20.796875M`）
+- `-XX:MaxMetaspaceSize=?m`：最大大小（默认$$2^{64}-65536$$）
+
+### 5、虚拟机栈
+
+- `-Xss:?k`：设置栈大小
+
+  > `-XX:ThreadStackSize=?k`
+  >
+  > 
+  >
+  > 栈大小影响栈深
+  >
+  > 单线程环境下，不管是栈太深，还是栈太大，只会报`StackOverflowError`，不会报`OOM`
+  >
+  > 多线程也很难出现`OOM`
+
+### 6、垃圾收集器
+
+#### G1
+
+> [详细信息](https://www.oracle.com/java/technologies/g1gc.html)
+
+- `-XX:G1HeapRegionSize=?`：设置`region`大小，必须是1M到32M之间的2的幂
+
+- `-XX:MaxGCPauseMillis=200`：设置期望最大暂停时间，默认200ms
+
+- `-XX:G1NewSizePercent=5`：设置新生代最小占堆比例，默认5%
+
+- `-XX:G1MaxNewSizePercent=60`：设置新生代最大占堆比例，默认60%
+
+  > 这个设参数与`-XX:NewRatio`设置效果等价，且显示设置后者会覆盖前者
+  >
+  > 可以看出G1默认新生区可以很大，这是因为它的大小是动态的，它用不到的内存时可以被老年代使用
+
+- `-XX:InitiatingHeapOccupancyPercent=45`：触发Mixed GC的阈值，默认值45%
+
+- `-XX:ParallelGCThreads=?`：设置STW工作线程数，逻辑核心数小于等于8时，默认值等于逻辑核心数
+
+- `-XX:ConcGCThreads=?`：设置并发标记工作线程数，应当（默认）设置为上面的1/4
+
+- `-XX:G1MixedGCLiveThresholdPercent=65`：如果一个old region存活对象低于这个阈值，那么就会被纳入Mixed GC的目标（实际上应该会被放入一个待清理列表，是否清理取决于目标停顿时间），默认值65%

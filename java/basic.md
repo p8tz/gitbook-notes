@@ -181,7 +181,7 @@ public interface Demo {
     // 4、静态方法
     [public] static void m3() {}
     
-    // 5、私有方法 [只能在接口内部使用, 可用于封装重复代码的问题]
+    // 5、私有方法 [只能在接口内部使用]
     // (1) 普通私有, 为默认方法提供服务
     private void m4() {}
     // (2) 静态私有, 为静态方法提供服务
@@ -191,10 +191,10 @@ public interface Demo {
 
 - 接口没有静态代码块
 - 接口没有构造方法
-- 如果实现的多个接口有重复的**抽象方法**, 则只需覆盖重写一次
-- 如果实现的多个接口有重复的**默认方法**, 则必须覆盖重写冲突的默认方法
-- 如果一个类的父类方法和实现接口的默认方法冲突, **优先使用父类的方法**
-- 接口可以多**继承**接口 如果默认方法冲突必须覆盖重写而且要有default关键字
+- 如果实现的多个接口有重复的**抽象方法**，则只需覆盖重写一次
+- 如果实现的多个接口有重复的**默认方法**，则必须覆盖重写冲突的默认方法
+- 如果一个类的父类方法和实现接口的默认方法冲突，**优先使用父类的方法**
+- 接口可以多**继承**接口，如果默认方法冲突必须覆盖重写而且要有`default`关键字
 
 ## 异常
 
@@ -203,19 +203,311 @@ public interface Demo {
 `Exception`可以分为`Checked Exception`和`Unchecked Exception`
 
 - `Checked Exception`：必须处理的异常，比如`IOException`。除了`RuntimeException`及其子类外都是`Checked Exception`
-- `Unchecked Exception`：可以不处理的异常，比如NPE
+- `Unchecked Exception`：可以不处理的异常，比如`NPE`
 
 ![w95klD.png](https://gitee.com/p8t/picbed/raw/master/imgs/20201116194856.png)
 
 出现`Exception`可以通过`try/catch`或`throws`来处理。其中`try/catch`是我们手动处理异常，而用`throws`则当前方法不处理，交给方法调用者来处理，如果到最后都没人处理则由虚拟机来处理，虚拟机中断线程并调用`e.printStackTrace()`
 
-还有个关键字`throw`，用来手动抛出异常。如果`throw`一个`RuntimeException`或`Error`，我们可以不处理，默认交给JVM处理
+还有个关键字`throw`，用来手动抛出异常。如果`throw`一个`RuntimeException`或`Error`，我们可以不处理，默认交给`JVM`处理
+
+### 自定义异常
+
+一般情况下，自定义非受检异常只需要实现`RuntimeException`类，写上构造方法即可，构造方法的`message`就是出错信息
+
+```java
+class CustomException extends RuntimeException {
+    public CustomException() {
+    }
+
+    public CustomException(String message) {
+        super(message);
+    }
+}
+```
+
+
+
+## 泛型
+
+### 1、泛型类
+
+```java
+class Generic<T> {
+    
+    private T val;
+
+    public Generic(T val) {
+        this.val = val;
+    }
+
+    public void setVal(T val) {
+        this.val = val;
+    }
+
+    public T getVal() {
+        return val;
+    }
+}
+
+@Test
+void t() {
+    Generic<String> a = new Generic<>("abc");
+    String s = a.getVal();
+}
+```
+
+### 2、继承泛型类
+
+**子类也是泛型类**
+
+此时子类的泛型标识需要和父类泛型标识一致，但可以扩充
+
+```java
+class Child<T, K, V> extends Generic<T> {
+    public Child(T val) {
+        super(val);
+    }
+}
+```
+
+**子类不是泛型类**
+
+此时子类需要特例化父类泛型
+
+```java
+class Child extends Generic<String> {
+    public Child(String val) {
+        super(val);
+    }
+}
+```
+
+### 3、泛型方法
+
+泛型方法使方法的泛型独立于类的泛型而变化
+
+**如果想要静态方法具有泛型的能力，则必须是泛型方法**
+
+```java
+class Generic<E> {
+    private E val;
+	
+    public void setVal(E val) {
+        this.val = val;
+    }
+    
+    // 这不是泛型方法
+    public E getVal() {
+        return val;
+    }
+    // 这才是泛型方法
+    public <T> T getVal(List<T> list) {
+        return list.get(new Random().nextInt(list.size()));
+    }
+    
+    public static <T> T getVal(T val) {
+        return val;
+    }
+}
+```
+
+### 4、泛型通配符
+
+**`PECS`**
+
+**上界通配符**
+
+使用`extends`限制`?`时，集合不能添加元素，因为不能确定集合里面具体存了什么类型
+
+```java
+@Test
+void t() {
+    show(Arrays.asList(1, 2, 3));
+    show(Arrays.asList(1.0, 2.0, 3.0));
+	show(Arrays.asList("1.0", "2.0", "3.0")); // 编译报错
+}
+
+public void show(List<? extends Number> list) {
+    list.forEach(System.out::println);
+    list.add(1); // 编译报错, 不允许添加元素
+}
+```
+
+**下界通配符**
+
+使用`extends`限制`?`时，集合不能取出元素（取出只能用`Object`接收），因为只有`Object`才能保证覆盖接收所有类型
+
+```java
+@Test
+void t() {
+    List<Integer> ints = new ArrayList<>();
+    List<Number> nums = new ArrayList<>();
+    show(ints);		// 编译报错
+    show(nums);
+}
+
+public void show(List<? super Number> list) {
+	Object o = list.get(0);	// 只能用Object接收
+    list.forEach(System.out::println);
+}
+```
+
+### 泛型数组
+
+由于类型擦除，泛型是不能直接`new`的。下面这种方法使用反射创建泛型数组，但还是需要再次传入泛型信息
+
+```java
+@SuppressWarnings("unchecked")
+class A<T> {
+    private T[] array;
+	
+    public A(Class<T> clz, int len) {
+        array = (T[]) Array.newInstance(clz, len);
+    }
+
+    public void set(int index, T val) {
+        array[index] = val;
+    }
+
+    public T get(int index) {
+        return array[index];
+    }
+}
+```
+
+
+
+
+
+
 
 ## 反射
 
 
 
 ## 注解
+
+### 1、内置注解
+
+前面四个是元注解，其实就是只能标注在注解上的注解。依赖`@Target`实现
+
+| --                     | --                                               |
+| ---------------------- | ------------------------------------------------ |
+| `@Target`              | 指明注解可以标注的地方                           |
+| `@Retention`           | 指明注解保留时期，默认为字节码                   |
+| `@Inherited`           | 注解可以被子类继承                               |
+| `@Documented`          | 可以被生成到`JavaDoc`                            |
+| `@Override`            | 重写父类方法编译期检查                           |
+| `@Deprecated`          | 方法过时                                         |
+| `@SuppressWarnings`    | 压制警告，常用参数：`all`，`unused`，`unchecked` |
+| `@FunctionalInterface` | 函数式接口检查                                   |
+
+### 2、注解本质
+
+注解实际上就是一个接口，它继承了`java.lang.annotation.Annotation`接口
+
+限制：里面**抽象方法**的返回值只能是以下几种
+
+- 基本数据类型 + `String`
+- 枚举
+- 注解
+- 以上类型的数组
+
+可以为方法赋予默认值，这个默认值就会作为方法调用的返回值。为数组赋值时使用大括号`{}`，如果数组中只有一个元素，可以省略大括号。
+
+```java
+@interface MyAnnotation {
+    String value() default "asdf";
+    int[] val() default 1;
+    int[] values() default {1, 2, 3};
+}
+```
+
+在使用注解的时候，如果注解里面有方法没有赋予默认值，则需要手动赋值。并且如果只需要赋一个值，且该方法名称是`value`，则可以省略方法名
+
+```java
+@Retention(RetentionPolicy.RUNTIME)
+@interface MyAnnotation {
+    String value();
+}
+
+@MyAnnotation(value = "C++")
+class A {}
+
+@MyAnnotation("C++")
+class B {}
+```
+
+### 3、使用注解
+
+注解本身仅仅有标注信息的作用，但我们可以根据注解信息决定下一步做什么
+
+**相关`API`**
+
+```java
+// 判断类(方法、属性)上是否存在某个注解
+bool isAnnotationPresent(AnnoClz);
+// 获取类(方法、属性)上某个注解 / 所有注解
+Annotation getAnnotation(AnnoClz);
+Annotation[] getAnnotations();
+// 获取注解的类对象 [直接通过注解实例的getClass()获取的是代理类的类对象]
+Class annotationType();
+// 获取注解的注解
+Annotation[] annos = MyAnnotation.class.getAnnotations();
+```
+
+**实例**
+
+```java
+// 定义注解
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.TYPE, ElementType.FIELD, ElementType.METHOD})
+@interface MyAnnotation {
+    String value();
+}
+
+// 测试类
+@MyAnnotation(value = "TYPE")
+class A {
+    @MyAnnotation(value = "FIELD")
+    int field;
+    @MyAnnotation(value = "METHOD")
+    void method() {}
+}
+
+public static void main(String[] args) throws NoSuchFieldException, NoSuchMethodException {
+    Class<A> type = A.class;
+    Field field = type.getDeclaredField("field");
+    Method method = type.getDeclaredMethod("method");
+
+    boolean isPresent = type.isAnnotationPresent(MyAnnotation.class);
+    if (isPresent) {
+        MyAnnotation anno = type.getAnnotation(MyAnnotation.class);
+        System.out.println(anno.value());
+    }
+
+    isPresent = field.isAnnotationPresent(MyAnnotation.class);
+    if (isPresent) {
+        MyAnnotation anno = field.getAnnotation(MyAnnotation.class);
+        System.out.println(anno.value());
+    }
+
+    isPresent = method.isAnnotationPresent(MyAnnotation.class);
+    if (isPresent) {
+        MyAnnotation anno = method.getAnnotation(MyAnnotation.class);
+        System.out.println(anno.value());
+    }
+}
+```
+
+
+
+
+
+
+
+
 
 ## HashCode
 

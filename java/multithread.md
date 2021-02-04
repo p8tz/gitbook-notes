@@ -60,11 +60,11 @@ public static void main(String[] args) throws ExecutionException, InterruptedExc
 
 阻塞和等待的区别在于，**阻塞是被动的**，它是在等待获取`monitor lock`。而等待是主动的，通过调用`Object.wait()`等方法进入。
 
-| 进入方法                                   | 退出方法                             |
-| ------------------------------------------ | ------------------------------------ |
-| 没有设置 Timeout 参数的 Object.wait() 方法 | Object.notify() / Object.notifyAll() |
-| 没有设置 Timeout 参数的 Thread.join() 方法 | 被调用的线程执行完毕                 |
-| LockSupport.park() 方法                    | LockSupport.unpark(Thread)           |
+| 进入方法                                     | 退出方法                             |
+| -------------------------------------------- | ------------------------------------ |
+| 没有设置` Timeout` 参数的`Object.wait()`方法 | `Object.notify()/Object.notifyAll()` |
+| 没有设置 `Timeout`参数的`Thread.join()`方法  | 被调用的线程执行完毕                 |
+| `LockSupport.park()` 方法                    | `LockSupport.unpark(Thread)`         |
 
 ### 限期等待（TIMED_WAITING）
 
@@ -90,11 +90,11 @@ public static void main(String[] args) throws ExecutionException, InterruptedExc
 
 ![image-20201128174300987](https://gitee.com/p8t/picbed/raw/master/imgs/20201128174302.png)
 
-- RUNNING：线程池创建后的正常工作状态。可以接受新的任务, 可以处理已添加的任务
-- SHUTDOWN：不接受新的任务，但可以处理已添加的任务
-- STOP：不接受新的任务，不处理已添加的任务，并且**尝试中断**正在执行的任务
-- TIDYING：当所有任务已被终止，任务数量为0，则会变为`TIDYING`状态，这时会调用terminated()。`terminated()`方法体为空，可以重写。
-- TERMINATED：`terminated()`执行完，就会变为TERMINATED状态
+- `RUNNING`：线程池创建后的正常工作状态。可以接受新的任务, 可以处理已添加的任务
+- `SHUTDOWN`：不接受新的任务，但可以处理已添加的任务
+- `STOP`：不接受新的任务，不处理已添加的任务，并且**尝试中断**正在执行的任务
+- `TIDYING`：当所有任务已被终止，任务数量为0，则会变为`TIDYING`状态，这时会调用`terminated()`。`terminated()`方法体为空，可以重写。
+- `TERMINATED`：`terminated()`执行完，就会变为`TERMINATED`状态
 
 **`shutdown()`**
 
@@ -638,7 +638,7 @@ Node结点是对每一个等待获取资源的线程的封装，其包含了需�
 - `SIGNAL(-1)`：表示后继结点在等待当前结点唤醒。后继结点入队时，会将前继结点的状态更新为SIGNAL。
 - `CONDITION(-2)`：表示结点等待在`Condition`上，当其他线程调用了`Condition`的`signal()`方法后，`CONDITION`状态的结点将从等待队列转移到同步队列中，等待获取同步锁。
 - `PROPAGATE(-3)`：共享模式下，前继结点不仅会唤醒其后继结点，同时也可能会唤醒后继的后继结点。
-- 0：新结点入队时的默认状态。
+- `0`：新结点入队时的默认状态。
 
 注意：负值表示结点处于有效等待状态，而正值表示结点已被取消。所以源码中很多地方用>0、<0来判断结点的状态是否正常。
 
