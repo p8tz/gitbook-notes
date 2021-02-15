@@ -146,13 +146,13 @@
 
 ### ACID
 
-原子性：事务的操作, 要么全部完成, 要么全都不完成
+原子性：事务的操作, 要么全部完成, 要么全都不完成。通过undo log实现
 
-一致性：事务执行前后的数据状态一致，这里一致可以认为是说符合逻辑，比如A给B转账100这个事务执行完后，成功应看到A-100，B+100, 不成功应看到A, B，不能出现中间其它状态
+一致性：事务执行前后的数据状态一致，这里一致可以认为是说符合逻辑，比如A给B转账100这个事务执行完后，成功应看到A-100，B+100, 不成功应看到A, B，不能出现中间其它状态。这一点是其它三点的最终实现目标。
 
-隔离性：并发访问时, 不同事务之间相互隔离, 不受影响，具体隔离效果取决于隔离级别
+隔离性：并发访问时, 不同事务之间相互隔离, 不受影响，具体隔离效果取决于隔离级别。通过锁和MVCC实现。
 
-持久性：一旦事务提交，所产生的变化是持久化在硬盘中的, 服务器宕机重启后读到的数据也是变化之后的
+持久性：一旦事务提交，所产生的变化是持久化在硬盘中的, 服务器宕机重启后读到的数据也是变化之后的。通过redo log实现。对于需要写入的数据并不是立即写入，而是先放在缓冲区中，定期写入。但是这样会有丢失数据的风险，因此每次有数据修改操作时，都会先写入redo log中，这个写入是顺序写，效率高，当然redo log也是有缓冲区的，具体写入策略有三种：1、每秒写入，2、事务提交同步写入，3、事务提交异步写入。
 
 ### 隔离级别
 
@@ -632,23 +632,25 @@ MySQL在索引里使用的字节数, key_len列显示了在索引字段中可能
 
 2、Using index condition
 
-命中索引，但不是所有的列数据都在索引树上，还需要访问实际的行记录, 即**回表**
+命中索引，使用索引下推，但不是所有的列数据都在索引树上，还需要访问实际的行记录, 即**回表**
+
+> [MySQL](https://dev.mysql.com/doc/refman/8.0/en/index-condition-pushdown-optimization.html)
+>
+> EXPLAIN output shows Using index condition in the Extra column when Index Condition Pushdown is used. It does not show Using index because that does not apply when full table rows must be read. 
 
 3、Using where
 
-使用where条件进行过滤
+对于索引字段可以使用索引树过滤，否则需要使用where条件进行过滤。第二种情况就会显示Using where
 
 4、Using temporary
 
-需要建立临时表(temporary table)来暂存中间结果。 
+需要建立临时表(temporary table)来暂存中间结果，一般出现在多张表需要排序。 
 
 常见于group by和order by
 
 5、Using filesort
 
-对结果使用一个外部索引排序，而不是按索引次序从表里读取行。
-
-在一个没有建立索引的列上进行了order by，就会触发filesort
+没有使用索引的排序。在一个没有建立索引的列上进行了order by，就会触发filesort
 
 ### 大分页查询
 

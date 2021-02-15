@@ -15,7 +15,7 @@ redis中全局的`key / value`以及数据类型`hash, set`都是通过字典实
 
 #### 渐进式rehash
 
-如果字典键值对过多，扩容时会消耗时间。因此redis服务器并不是一次性把`ht[0]`数据都`rehash`到`ht[1]`，而是分多次，具体为把`rehash`过程分散到每一次添加、删除、更新和查找过程，这个过程中`rehashidx`不断+1，完成后置-1
+如果字典键值对过多，扩容时会消耗时间。因此redis服务器并不是一次性把`ht[0]`数据都`rehash`到`ht[1]`，而是分多次，具体为把`rehash`过程分散到每一次添加、删除、更新、查找过程以及定时任务，这个过程中`rehashidx`不断+1，完成后置-1
 
 由于渐进式rehash过程中同时使用ht[0]和ht[1]，因此执行删除、查找等操作时会对两个都执行。
 
@@ -100,7 +100,7 @@ typedef struct zskiplist {
 #### zset
 
 - 当数据较少时，`zset`是由一个`ziplist`来实现的。
-- 当数据较多时，`zset`是由`dict + skiplist`来实现的。`dict`用来查询数据到分数(`score`)的对应关系，而`skiplist`用来根据分数查询数据（可能是范围查找）。
+- 当数据较多或单个元素较大时（默认为128个，64byte；可以设置），`zset`是由`dict + skiplist`来实现的。`dict`用来查询数据到分数(`score`)的对应关系，而`skiplist`用来根据分数查询数据（可能是范围查找）。
 
 #### 与平衡树、哈希表的比较
 
@@ -125,6 +125,8 @@ typedef struct zskiplist {
 
 #### 手动持久化
 
+> 执行shutdown关闭redis会触发持久化；flushall也会触发持久化，目的就是为了清空持久化数据
+
 通过**`save / bgsave`**命令生成**`dump.rdb`**文件，文件位置可通过配置文件进行配置
 
 ```bash
@@ -142,7 +144,7 @@ rdbchecksum yes
 
 ![image-20201108211459086](https://gitee.com/p8t/picbed/raw/master/imgs/20201108211500.png)
 
-`bgsave`会调用`fork`函数生成子进程，进行`RDB`文件的生成
+`bgsave`会`fork`一个一样的子进程，共享数据段，然后进行持久化生成一个临时文件，持久化结束后会把这个临时文件替换掉原来的`RDB`文件。在持久化过程中，如果有新的写入命令，则使用COW机制，因此这些数据变化对于子进程来说不可见。这也是RDB被称为内存快照的原因。
 
 ![image-20201108211714944](https://gitee.com/p8t/picbed/raw/master/imgs/20201108211715.png)
 
@@ -169,6 +171,7 @@ save 60 10000
 缺点
 
 - RDB方式无论是执行指令还是利用配置，无法做到实时持久化，具有较大的可能性丢失数据
+- 持久化过程中宕机，会丢失更多数据
 - bgsave指令每次运行要执行fork操作创建子进程，要牺牲掉一些性能
 - Redis的众多版本中未进行RDB文件格式的版本统一，有可能出现各版本服务之间数据格式无法兼容现象
 
@@ -220,6 +223,8 @@ appendfilename appendonly-6380.aof # AOF文件位置
 
 由于`aof`是基于记录操作过程的，因此可能会记录大量无用的操作，比如连续`set`同一个`key`，则只有最后一个`key`有效，这样不仅消耗性能还占磁盘。考虑到这种情况，redis提供了`aof`重写功能。
 
+重写并不是基于原始aof文件的，而是**基于内存数据**。会有专门的重写进程遍历内存数据，序列化为一系列的指令，进而生成aof文件来替换掉原始文件。在重写过程中，新的指令会在完成重写过添加到新的aof文件中。
+
 ##### 重写作用
 
 - 降低磁盘占用量，提高磁盘利用率
@@ -242,8 +247,9 @@ appendfilename appendonly-6380.aof # AOF文件位置
 
 ```bash
 # 自动重写触发条件设置
-auto-aof-rewrite-min-size size # 缓冲区数据达到size时重写
-auto-aof-rewrite-percentage percentage
+auto-aof-rewrite-min-size 64MB # aof文件第一次达到64M时重写
+auto-aof-rewrite-percentage 100 # 下一次重写大小, 计算方式为本次重写后的大小*(1 + 100%)
+
 # 自动重写触发比对参数 (运行指令info Persistence获取具体信息)
 aof_current_size	# 缓冲区待写入数据的大小
 aof_base_size		# 
@@ -251,9 +257,9 @@ aof_base_size		#
 
 触发自动重写条件（满足其一即可）
 
-$$aof\_current\_size > auto-aof-rewrite-min-size$$
+$$aof\_current\_size > auto\_aof\_rewrite\_min\_size$$
 
-$$\frac{aof\_current\_size - aof\_base\_size}{aof\_base\_size} >= auto-aof-rewrite-percentage$$
+$$\frac{aof\_current\_size - aof\_base\_size}{aof\_base\_size} >= auto\_aof\_rewrite\_percentage$$
 
 ##### 重写流程
 
@@ -262,6 +268,10 @@ $$\frac{aof\_current\_size - aof\_base\_size}{aof\_base\_size} >= auto-aof-rewri
 ![image-20201108223028850](https://gitee.com/p8t/picbed/raw/master/imgs/20201108223029.png)
 
 ![image-20201108223040758](https://gitee.com/p8t/picbed/raw/master/imgs/20201108223041.png)
+
+### 混合持久化
+
+在redis4.0后新增了混合持久化，对于aof重写后的结果不再是指令，而是rdb文件结构的二进制数据；然后对于新增的指令还是aof
 
 ### 选择
 
@@ -399,6 +409,10 @@ Redis是一种内存级数据库，所有数据均存放在内存中，内存中
 
 对于**已经过期的数据**并不是立马删除，有对应的删除策略
 
+### 操作范围
+
+对于有时效性的数据，会专门开辟一块名为expires的空间进行统一管理，key为数据指针，value为过期时间。因此删除策略所实施的范围不是在全局key中，而是在expires空间中。每一个库都有一个expires
+
 ### 删除策略
 
 #### 1、定时删除
@@ -417,15 +431,17 @@ Redis是一种内存级数据库，所有数据均存放在内存中，内存中
 
 #### 3、定期删除
 
-- 每秒执行server.hz（默认为10）次serverCron()操作
-- 在这个操作中会对所有的库进行轮询访问
-- 每次访问会对该库中所有有时效性的key进行随机挑选（每次挑选持续时长`250ms/server.hz`），挑选出W个（通过配置文件配置）
-- 对这W个key中过期的进行删除，如果删除的个数超过25%，则重新对该库执行这个过程，否则去下一个库
-- 变量`current_db`记录当前轮询到了哪个数据库
+Redis 默认会每秒进行十次过期扫描，过期扫描不会遍历过期字典中所有的 key，而是采用了一种简单的贪心策略。 
+
+1. 从过期字典中随机 20 个 key； 
+2. 删除这 20 个 key 中已经过期的 key； 
+3. 如果过期的 key 比率超过 1/4，那就重复步骤 1，否则扫描下一个库的时效数据。
+
+同时，为了保证过期扫描不会出现循环过度，导致线程卡死现象，算法还增加了扫描时间的上限，默认不会超过 25ms。这样算下来，一秒内最多有250ms用于扫描过期key，也就是最多占用CPU四分之一的时间
 
 ### 小结
 
-redis内部使用的是惰性删除和定期删除
+redis内部同时使用**惰性删除**和**定期删除**
 
 ## 六、数据逐出（淘汰）算法
 
@@ -605,7 +621,7 @@ masterauth master_pwd
 
   2. 下一个`sentinel`进来后与`master`交换信息，发现有其它`sentinel`连过，就会找到它们交换信息
 
-     ![image-20201110225201730](https://gitee.com/p8t/picbed/raw/master/imgs/20201110225202.png)
+![image-20201110225201730](https://gitee.com/p8t/picbed/raw/master/imgs/20201110225202.png)
 
 - 通知阶段：验证各节点是否正常工作
 
@@ -613,7 +629,7 @@ masterauth master_pwd
 
   2. 并且会把反馈在`sentinel`之间交换
 
-     ![image-20201110225525509](https://gitee.com/p8t/picbed/raw/master/imgs/20201110225526.png)
+![image-20201110225525509](https://gitee.com/p8t/picbed/raw/master/imgs/20201110225526.png)
 
 - 故障转移阶段
 
@@ -702,7 +718,7 @@ redis服务器刚启动对外提供服务时，里面没有数据，这就相当
 
 ### 缓存击穿
 
-类似于缓存雪崩：某个`key`过期，然后大量访问该`key`
+类似于缓存雪崩：**某个**`key`过期，然后大量访问该`key`
 
 场景：微博热搜，`redis`中`key`失效，大量请求落入数据库
 
@@ -754,6 +770,35 @@ public String query(String key) {
 布隆过滤器的实现需要一个**二进制序列**和**若干个hash函数**。对于一个key，通过这若干个hash函数计算出它在二进制序列上不同位置的若干个点，把这些点标为1**（不会记录数据）**。
 
 因此查询的时候只要看它对应的这些位置是否都为1，只要有一个0，那么肯定不存在这个key。但即使全为1，也只能判断可能存在这个key，因为它对应位置的1有可能被其它key标记了。**具体的误差率取决于使用hash函数的个数，使用越多，误差越小，所占的内存也越大。**
+
+## 十三、应用
+
+### string
+
+- 用于缓存，对象序列化
+- 验证码
+- 分布式ID
+- 统计阅读量
+
+### hash
+
+- 用户对象缓存，可以缓存较少字段
+- 购物车，用户id作为外层key，商品作为id作为内层key，商品数量作为value
+
+### list
+
+- 公众号消息流，分布式队列天然适合按时间顺序推送文章
+
+### set
+
+- 抽奖，set有个随机获取元素的功能
+- 记录文章点赞的人
+- 社交软件关注模型。sinter取交集，可以查看用户之间的共同关注；sunion取并集；sdiff取差集，可以用于用户推荐，比如A用户关注了B用户，则可以把BdiffA的用户推荐给A，因为BdiffA就是B关注了但A没关注的用户
+
+### zset
+
+- 热搜排行，浏览一次score加1
+- 关注列表，score记录关注时间
 
 ## 参考文章
 

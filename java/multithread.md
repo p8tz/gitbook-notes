@@ -284,7 +284,7 @@ public ThreadPoolExecutor(int corePoolSize,
 
 - 两种定时策略，图中`task`长度表示时间跨度
 
-  ![image-20201128203330123](https://gitee.com/p8t/picbed/raw/master/imgs/20201128203331.png)
+![image-20201128203330123](https://gitee.com/p8t/picbed/raw/master/imgs/20201128203331.png)
 
 ### 5、使用示例
 
@@ -304,6 +304,10 @@ public static void main(String[] args) throws ExecutionException, InterruptedExc
     es.shutdown();
 }
 ```
+
+### 6、线程池配置
+
+
 
 ## 四、Thread方法
 
@@ -777,6 +781,15 @@ public class E {
 
 ### Semaphore
 
+### BlockingQueue
+
+| 抛异常 | 阻塞 | 超时put/take             |
+| ------ | ---- | ------------------------ |
+| add    | put  | offer(E, long, TimeUnit) |
+| remove | take | poll(long, TimeUnit)     |
+
+
+
 ## 十一、ReentrantReadWriteLock
 
 读写锁内部含有读锁对象和写锁对象，但是这两个共享一个`AQS`，也就意味着共享一个资源变量**`state`**，具体共享方式实现如下图，高16位用于读锁，低16位用于写锁
@@ -856,8 +869,52 @@ static class ThreadLocalMap {
 
 当在一个`ThreadLocal`中`set`一个值后，其引用关系如下图。`tl`指向`new`出来的`ThreadLocal`对象，并且因为ThreadLocalMap中的`key`也是`ThreadLocal`，因此这个`key`也指向那个`ThreadLocal`对象，并且这个指向是**弱引用**。
 
-使用弱引用的原因：如果使用强引用，即使tl不再引用`ThreadLocal`对象了，那么它也不能被回收。因为`key`还指向着它，并且这个`key`的生命周期是与当前线程挂钩的，只要当前线程不死亡，那么就一直存在着`ThreadLocal`就会一直占着内存，导致内存泄漏。而如果使用若引用，只要`tl`不再指向`ThreadLocal`对象，那么`GC`一遇到它就会回收，不会有内存泄漏问题。
+使用弱引用的原因：如果使用强引用，即使tl不再引用`ThreadLocal`对象了，那么它也不能被回收。因为`key`还指向着它，并且这个`key`的生命周期是与当前线程挂钩的，只要当前线程不死亡，那么就一直存在着`ThreadLocal`就会一直占着内存，导致内存泄漏。而如果使用弱引用，只要`tl`不再指向`ThreadLocal`对象，那么`GC`一遇到它就会回收，不会有内存泄漏问题。
 
-但还有一个问题，就是如果只`set`值，在`key`被`GC`置为`null`后，就无法获取到`value`值了，因此使用完后，需要调用`remove`方法把整个`entry`移除，否则就会造成内存泄漏
+但还有一个问题：在`key`被`GC`置为`null`后，也就无法获取到`value`值，`value`也就无法被回收。因此使用完后，需要调用`remove()`方法把整个`entry`移除，否则就会造成内存泄漏。
 
 ![image-20201203215950747](https://gitee.com/p8t/picbed/raw/master/imgs/20201203215952.png)
+
+## 十四、volatile
+
+### volatile
+
+- 可见性
+
+  ```java
+  static volatile boolean flag = true;
+  
+  public static void main(String[] args) {
+      Thread t1 = new Thread(() -> {
+          // 如果不加volatile, 则不会退出循环
+          while (flag) {}
+          System.out.println("exit");
+      });
+  
+  
+      Thread t2 = new Thread(() -> {
+          TimeUnit.SECONDS.sleep(1);
+          flag = false;
+      });
+      t1.start();
+      t2.start();
+  }
+  ```
+
+  
+
+- 有序性，通过添加内存屏障指令，屏障前后的指令不能重排
+
+## 十五、CAS
+
+问题
+
+- ABA，通过加版本号或者时间戳解决
+- 循环，占用CPU，
+- 只能对一个变量修改，通过AtomicReference解决
+
+## 十六、死锁检测
+
+通过`jps -l`查询`pid`
+
+通过`jstack <pid>`可以查看死锁信息

@@ -187,12 +187,12 @@
 
 - 把原本消亡的对象错误标记为存活， 这其实是可以容忍的，只不过产生了一点逃过本次收集的浮动垃圾而已，下次收集清理掉就好。
 
-  ![image-20201206181350483](https://gitee.com/p8t/picbed/raw/master/imgs/20201206181352.png)
+![image-20201206181350483](https://gitee.com/p8t/picbed/raw/master/imgs/20201206181352.png)
 
 - 把原本存活的对象错误标记为已消亡，这就是非常致命的后果了，程序肯定会因此
   发生错误。
 
-  ![image-20201206181946818](https://gitee.com/p8t/picbed/raw/master/imgs/20201206181947.png)
+![image-20201206181946818](https://gitee.com/p8t/picbed/raw/master/imgs/20201206181947.png)
 
 #### 解决方法
 
@@ -881,7 +881,7 @@ JDK1.8（win10）
 
 ### 5、虚拟机栈
 
-- `-Xss:?k`：设置栈大小
+- `-Xss:?k`：设置栈大小，初始值在64位的`Linux、Mac、Solaris`上都是`1024K`，在`windows`上依赖于`virtual memory`
 
   > `-XX:ThreadStackSize=?k`
   >
@@ -918,3 +918,68 @@ JDK1.8（win10）
 - `-XX:ConcGCThreads=?`：设置并发标记工作线程数，应当（默认）设置为上面的1/4
 
 - `-XX:G1MixedGCLiveThresholdPercent=65`：如果一个old region存活对象低于这个阈值，那么就会被纳入Mixed GC的目标（实际上应该会被放入一个待清理列表，是否清理取决于目标停顿时间），默认值65%
+
+## 六、性能调优
+
+> [参考](https://www.bilibili.com/video/BV1PJ411n7xZ)
+
+### 性能优化步骤
+
+1. 性能监控
+2. 性能分析
+3. 性能调优
+
+### 性能指标
+
+- 响应时间：从发出请求到收到响应所需要的时间
+- 吞吐量：单位时间工作量
+- 并发量
+- 内存占用
+
+### 监控工具
+
+### 1、JDK自带
+
+```shell
+# 查看运行中的JVM进程
+jps
+	-l # 列出全类名
+	-q # 只显示PID
+	-m # 显示给main函数传递的参数
+	-v # 显示虚拟机参数
+
+# 查看JVM统计信息
+jstat <option> <pid> [interval] [count] # 每隔interval查询一次信息, 共查询count次 单位ms
+	-t # 加上时间戳, 即程序执行的时间 单位s
+	-h # 每隔一定查询次数重新输出表头
+	<option>
+		-class # 查询类加载信息
+		-compiler # 查询JIT编译信息
+		-printcompilation # 查询JIT编译的方法
+		-gc
+		...
+		https://docs.oracle.com/en/java/javase/11/tools/jstat.html
+
+# 实时查看JVM参数
+jinfo <option> <pid>
+	-sysprops # 查看系统相关信息
+	-flag <arg>
+	-flags
+	
+# 堆区快照
+jmap -dump:format=b,file=<file.hprof> <pid>
+jmap -dump:live,format=b,file=<file.hprof> <pid> # 只保留存活的对象
+# 自动生成dump文件
+-XX:HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=<file.hprof>
+
+# 线程快照, 可以检测死锁
+jstack <pid>
+
+# 综合指令
+jcmd <pid> help # 查询可以使用的参数
+jcmd <pid> Thread.print # 相当于jsatck
+jcmd <pid> GC.heap_dump <file.hprof> # 相当于jmap
+jcmd <pid> VM.uptime # JVM运行时间 相当于jstat -t
+jcmd <pid> VM.flags #
+```
+
