@@ -196,7 +196,7 @@ passwd <user> # <user> 代表可以是用户名, 也可以是uid
 id <user>
 # 删除用户
 userdel -r <user>
-	-r # 移除家目录和邮件目录: /var/spool/mail/<username>
+	-r # 移除对应的家目录和邮件目录: /var/spool/mail/<username>
 # 修改用户属性
 usermod <user>
 	-g # 修改基本组
@@ -642,7 +642,7 @@ ll
 >
 > [Adding a Path to the Linux PATH Variable](https://www.baeldung.com/linux/path-variable)
 
-系统默认环境变量配置为
+系统默认PATH变量配置为
 
 ```bash
 /usr/bin		# 基本系统命令
@@ -651,13 +651,11 @@ ll
 /usr/local/sbin # 用户后来加入的
 ```
 
-
-
 系统级别
 
 - `/etc/environment`
 - `/etc/profile`
-- `/etc/profile/*.sh`
+- `/etc/profile.d/*.sh`
 
 用户级别
 
@@ -917,10 +915,10 @@ netstat -rn	   	# 查看路由表
 # grep按行截取
 grep -i abc  # 忽略大小写
 grep -v '^#' # 排除指定行, 可用于过略注释, 
-			 # ^表示以#开头才过滤, 否则只要行内有#就会被过滤
+			 # ^表示行以#开头才过滤, 否则只要行内有#就会被过滤
 	 -E	# 使用扩展正则, 如果不加-E, 使用正则需要转义(){}
 	 	# 或者直接使用egrep
-grep -Ev "^\s*#|^$" # 过滤注释和空行
+grep -Ev "^\s*(#|$)" # 过滤注释和空行
 # cut按列截取		 
 cut
 	-d # 指定分隔符
@@ -935,7 +933,7 @@ printf
 	%m.nf	# 浮点数, 一共m位, 小数占n位
 
 # awk中含有printf和print, 区别是后者有换行,
-# 注意第一个不是上面那个命令, 而是awk中的
+# 注意这个printf不是上面那个命令, 而是awk中的
 # 默认以空白符分隔
 awk '{print $3}'	# $3代表第三列
 	-F ":"	# 指定分隔符
@@ -1161,5 +1159,13 @@ init 6
 5	# 带有3的图形界面
 6	# 重启
 runlevel	# 查询运行级别
+
+环境变量PS1记录了命令提示符格式
+```
+
+```shell
+^C  强行退出
+^D  正常退出
+
 ```
 

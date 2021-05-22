@@ -22,7 +22,7 @@ List<String> list = new ArrayList<>(Arrays.asList("1", "2", "3"));
 String[] arr = list.toArray(new String[0]);
 // 集合转基本类型数组
 List<Integer> list = new ArrayList<>(Arrays.asList(1, 2, 3));
-int[] arr = Arrays.stream(list.toArray(new Integer[0])).mapToInt(Integer::intValue).toArray();
+int[] arr = list.stream().mapToInt(Integer::intValue).toArray();
 ```
 
 **包装类型数组转基本类型数组**

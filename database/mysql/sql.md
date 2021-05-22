@@ -5,19 +5,21 @@
 ### 创建
 
 ```mysql
-CREATE DATABASE test_db;
+CREATE DATABASE db;
+CREATE DATABASE IF NOT EXISTS db;
 ```
 
 ### 删除
 
 ```mysql
-DROP DATABASE test_db;
+DROP DATABASE db;
+DROP DATABASE IF EXISTS db;
 ```
 
 ### 使用(切换)
 
 ```mysql
-USE test_db;
+USE db;
 ```
 
 ### 列出所有数据库
@@ -32,77 +34,88 @@ SHOW DATABASES;
 
 ```mysql
 CREATE TABLE `author` (
-	author_id INT,
-	PRIMARY KEY(author_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+	id INT PRIMARY KEY AUTO_INCREMENT,
+    nickname char(10) UNIQUE,
+    sex char(1) DEFAULT '无',
+    age INT CHECK (age BETWEEN 0 AND 150)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE `article`(
-	article_id INT AUTO_INCREMENT,
-	title VARCHAR(100) NOT NULL,
+	id INT PRIMARY KEY AUTO_INCREMENT,
+	title CHAR(20) NOT NULL,
 	fk_author_id int,
-	submit_date time,
-	PRIMARY KEY (article_id),
-	FOREIGN key (fk_author_id) REFERENCES author(author_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+	FOREIGN KEY (fk_author_id) REFERENCES author(id)
+) DEFAULT CHARSET=utf8mb4;
+```
+
+### 字段约束
+
+```mysql
+NOT NULL
+UNIQUE
+PRIMARY KEY # 相当于 UNIQUE + NOT NULL
+FOREIGN KEY
+CHECK
+DEFAULT
 ```
 
 ### 删除
 
 ```mysql
-DROP TABLE mytable;
+DROP TABLE tab;
 ```
 
 ### 修改
 
+语法
+
+```mysql
+ALTER TABLE tab ADD|MODIFY|CHANGE|DROP COLUMN col 数据类型 [约束]
+```
+
 添加列
 ```mysql
-ALTER TABLE article
-ADD COLUMN article_type VARCHAR(10) NOT NULL;
+ALTER TABLE tab ADD COLUMN col CHAR(1) [NOT NULL];
 ```
 
 删除列
 ```mysql
-ALTER TABLE article
-DROP COLUMN article_type;
+ALTER TABLE tab DROP COLUMN col;
 ```
 
-修改列名称和数据类型
+修改列名和数据类型
 ```mysql
-ALTER TABLE article 
-CHANGE article_type type VARCHAR(12);
+ALTER TABLE tab CHANGE oldcol newcol CHAR(1) [NOT NULL];
 ```
 
 修改列数据类型
 ```mysql
-ALTER TABLE article 
-MODIFY title VARCHAR(50);
+ALTER TABLE tab MODIFY col CHAR(1) [NOT NULL];
 ```
 
 修改表名
 ```mysql
-ALTER TABLE article 
-RENAME TO passage;
+ALTER TABLE oldtab RENAME TO newtab;
 ```
 
 ### 查看表结构
 
 ```mysql
-DESC article;
+DESC tab;
 ```
 
 ## 三、INSERT
 
 普通插入
 ```mysql
-INSERT INTO mytable(col1, col2)
-VALUES(val1, val2);
+INSERT INTO tab(col1, col2) VALUES(val1, val2);
 ```
 
 插入检索出来的数据
 ```mysql
-INSERT INTO mytable1(col1, col2)
+INSERT INTO tab1(col1, col2)
 SELECT col1, col2
-FROM mytable2;
+FROM tab2;
 ```
 
 将一个表的内容插入到一个新表
@@ -111,10 +124,10 @@ CREATE TABLE newtable AS
 SELECT * FROM oldtable;
 ```
 
-## 四 、UPDATE
+## 四、UPDATE
 
 ```mysql
-UPDATE mytable
+UPDATE tab
 SET col = val
 WHERE id = 1;
 ```
@@ -122,22 +135,21 @@ WHERE id = 1;
 ## 五、DELETE
 
 ```mysql
-DELETE FROM mytable
-WHERE id = 1;
+DELETE FROM tab WHERE id = 1;
 ```
 
-TRUNCATE TABLE 可以清空表
+TRUNCATE TABLE 可以删掉整个表，然后重建一个新表，效率高
 ```mysql
-TRUNCATE TABLE mytable;
+TRUNCATE TABLE tab;
 ```
 
-## 六 、   SELECT
+## 六、SELECT
 
 DISTINCT
 相同值只会出现一次。它作用于所有列，也就是说所有列的值都相同才算相同。
 ```mysql
 SELECT DISTINCT col1, col2
-FROM mytable;
+FROM tab;
 ```
 
 LIMIT
@@ -146,20 +158,20 @@ LIMIT
 返回前 5 行：
 ```mysql
 SELECT *
-FROM mytable
+FROM tab
 LIMIT 5;
 ```
 
 ```mysql
 SELECT *
-FROM mytable
+FROM tab
 LIMIT 0, 5;
 ```
 
 返回第 3 ~ 5 行：
 ```mysql
 SELECT *
-FROM mytable
+FROM tab
 LIMIT 2, 3;
 ```
 
@@ -172,7 +184,7 @@ DESC ：降序
 
 ```mysql
 SELECT *
-FROM mytable
+FROM tab
 ORDER BY col1 DESC, col2 ASC;
 ```
 
@@ -190,13 +202,13 @@ _ 匹配 ==1 个任意字符；
 
 ```mysql
 SELECT *
-FROM mytable
+FROM tab
 WHERE col LIKE '[^AB]%'; -- 不以 A 和 B 开头的任意文本
 ```
 
 不要滥用通配符，通配符位于开头处匹配会非常慢。
 
-## 九、 分组
+## 九、分组
 
 把具有相同的数据值的行放在同一组中。
 
@@ -206,7 +218,7 @@ WHERE col LIKE '[^AB]%'; -- 不以 A 和 B 开头的任意文本
 
 ```mysql
 SELECT col, COUNT(*) AS num
-FROM mytable
+FROM tab
 GROUP BY col;
 ```
 
@@ -214,7 +226,7 @@ GROUP BY 自动按分组字段进行排序，ORDER BY 也可以按汇总字段�
 
 ```mysql
 SELECT col, COUNT(*) AS num
-FROM mytable
+FROM tab
 GROUP BY col
 ORDER BY num;
 ```
@@ -423,32 +435,97 @@ ALTER USER username IDENTIFIED WITH mysql_native_password BY 'password';
 
 ```mysql
 # 字符函数
-concat(..str) # 拼接字符串
-length(str) # 返回字节长度, 中文占3或4个字节
-char_length(str) # 返回字符个数, 中文占1个
-substring(str, start, length) # 起始从1开始
-trim(str)
+concat(...str) # 拼接字符串
+length(str)   # 返回字节长度, 中文占3或4个字节
+char_length(str) # 返回字符长度, 中文占1个
+substring(str, begin, [length]) # 起始索引从1开始, substr()效果一样
+instr(str, x) # 第一次出现x的索引
+trim(str) # 去除str两端的空格
 trim(x from str) # 去除两端的x
 upper()
 lower()
-strcmp() # x小
+lpad(str, length, x)  # 右对齐, 长度不足补x
+rpad(str, length, x)  # 左对齐, 长度不足补x
+left(str, length) # 从左边截取指定长度字符
+right(str, length)
+strcmp(x, y) # x > y ? 1 : (x < y ? -1 : 0)
 
+# 日期函数
+now()	   # 当前日期时间
+curdate()  # 当前日期
+curtime()  # 当前时间
+date(now()) # 返回日期部分
+time(now()) # 返回时间部分
+year(now()) # 返回年份
+...
+date_add(now(), interval 1 day)
+date_add(now(), interval 1 month)
+date_add(now(), interval 1 minute)
+date_add(now(), interval '05:05:05' hour_second)
+...
+datediff(x, y) # 返回天数之差
+
+# 流程控制函数
+ifnull(col, "asdf") # 如果col为null, 则使用默认值asdf
+if(condition, 'true', 'false') # 三元表达式
+
+case condition_value
+when con1 then res1
+when con2 then res2
+...
+else resn
+end
 
 # 数学函数
-# 日期函数
-# 流程控制函数
+pi() # 圆周率
+mod(x, y) # x % y
+exp() # e为底的指数值
+pow(x, y) # x的y次方
+rand() # 0到1的浮点数
+sqrt()
+abs()
+floor() # 向下取整
+ceil()  # 向上取整
+sin()   # 弧度制
+cos()
+tan()
 
-
-ifnull(column, "asdf") # 如果前一个为null, 则使用后一个默认值
+# 聚集函数
+avg()
+count()
+sum()
 max()
 min()
-# 排名
-row_number() over(order by column asc) # 连续排名
-rank() over(order by column asc) 	   # 相同跳跃排名
-dense_rank() over(order by column asc) # 相同连续排名
 
+# 排名
+row_number() over(partition by col order by col asc) # 连续排名
+rank() over(partition by col order by column asc) 	   # 相同跳跃排名
+dense_rank() over(partition by col order by col asc) # 相同连续排名
+
+# 数字格式化
+round(num, 5)    # 四舍五入到小数点后5位, 负数代表从小数点左边开始四舍五入
+truncate(num, 5) # 保留小数点后5位, 不足补0
+format(num, 5)   # 保留小数点后5位, 不足补0, 整数超过3位以逗号分隔
+
+# 摘要函数
+sha()
+md5()
+
+# misc
 database() # 返回当前使用的数据库
 version()  # 返回mysql版本
 user()	   # 返回登录用户名和登录ip
+```
+
+## 十六、数据类型
+
+```mysql
+int / tinyint / smallint / mediumint / bigint # 4 1 2 3 8字节
+float / double(5,2) # 最多5位, 小数占2位, 即最大值999.99
+decimal # 高精度浮点数
+char(len) / varchar(len) / text # 字符长度, 不是字节长度
+tinyint(1) # 布尔型
+date / time / datetime / timestamp
+blob # 二进制类型
 ```
 

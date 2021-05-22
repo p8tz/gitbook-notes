@@ -31,7 +31,7 @@ HTTP最初的版本。它只有一个方法（GET），没有首部，其设计�
 
 - 管道机制（流水线）。客户端收到HTTP响应报文之前就能够接着发送新的请求报文（相当于服务器端有一个请求队列，服务器挨个响应），于是一个接一个的请求报文达到服务器后，服务器就可连续发回响应报文。但是，如果前面的响应需要很长时间，则会有"队头堵塞"（Head-of-line blocking）问题，因此浏览器基本上禁用了这个选项，而是通过建立多个TCP连接实现并发传输，但是对一个web服务只能建立少数连接（chrome下最多建立6个连接），多了还是要阻塞。并发请求问题到HTTP/2.0得到解决：通过多路复用，多个资源不是串行传输，而是并行传输，可以根据流优先级先传输重要的资源。
 
-  ![image-20201103194151500](https://gitee.com/p8t/picbed/raw/master/imgs/20201103194152.png)
+![image-20201103194151500](https://gitee.com/p8t/picbed/raw/master/imgs/20201103194152.png)
 
 - 断点续传，即分块传输。通过`Range`和`Content-Range`实现。前者用于请求头，表明要传输的指定字节区间。后者用于响应头，表明当前传输的字节区间以及文件总大小。
 
@@ -43,7 +43,7 @@ HTTP最初的版本。它只有一个方法（GET），没有首部，其设计�
 
   HTTP/2.0 将报文分成 HEADERS 帧和 DATA 帧，它们都是二进制格式的。
 
-  ![image-20201105222734931](https://gitee.com/p8t/picbed/raw/master/imgs/20201105222736.png)
+![image-20201105222734931](https://gitee.com/p8t/picbed/raw/master/imgs/20201105222736.png)
 
   在通信过程中，只会有一个 TCP 连接存在，它承载了任意数量的双向数据流（Stream）。
 
@@ -53,13 +53,13 @@ HTTP最初的版本。它只有一个方法（GET），没有首部，其设计�
 
   - 帧（Frame）是最小的通信单位，来自不同数据流的帧可以交错发送，然后再根据每个帧头的数据流标识符重新组装。
 
-    ![image-20201105222800618](https://gitee.com/p8t/picbed/raw/master/imgs/20201105222801.png)
+![image-20201105222800618](https://gitee.com/p8t/picbed/raw/master/imgs/20201105222801.png)
 
 - 多路复用 (Multiplexing)
 
   解决了HTTP/1.1并发请求问题。通过二进制分帧，一个TCP连接可以传输多个流。相当于把原来的多个请求打散并发的在一个TCP连接内传输，这样每一个请求都不会阻塞。这项技术的实现基于二进制分帧层，解决了HTTP/1.1队头阻塞问题。
 
-  ![image-20201105222824260](https://gitee.com/p8t/picbed/raw/master/imgs/20201105222825.png)
+![image-20201105222824260](https://gitee.com/p8t/picbed/raw/master/imgs/20201105222825.png)
 
 - 首部压缩（Header Compression）
 
@@ -73,14 +73,14 @@ HTTP最初的版本。它只有一个方法（GET），没有首部，其设计�
 
   不仅如此，HTTP/2.0 也使用 `Huffman `编码对首部字段进行压缩。
 
-  ![image-20201105222902434](https://gitee.com/p8t/picbed/raw/master/imgs/20201105222903.png)
+![image-20201105222902434](https://gitee.com/p8t/picbed/raw/master/imgs/20201105222903.png)
 
 - 服务端推送（Server Push）
 
   HTTP/2.0 在客户端请求一个资源时，会把相关的资源一起发送给客户端，客户端就不需要再次发起请求了。例如客户端请求 `page.html`页面，服务端就把 `script.js` 和 `style.css` 等与之相关的资源一起发给客户端。
 
-  ![image-20201105222923268](https://gitee.com/p8t/picbed/raw/master/imgs/20201105222924.png)
-  
+![image-20201105222923268](https://gitee.com/p8t/picbed/raw/master/imgs/20201105222924.png)
+
 - 流优先级（Stream Prioritization）
 
   支持多路复用后，流的权重以及依赖项决定了服务器优先响应哪一个流的帧。
@@ -90,7 +90,7 @@ HTTP最初的版本。它只有一个方法（GET），没有首部，其设计�
 
   流依赖项和权重的组合允许客户端构造和通信一个"优先级树"，该树表示它希望如何接收响应。反过来，服务器可以使用此信息通过控制 CPU、内存和其他资源的分配来确定流处理的优先级，一旦响应数据可用，分配带宽以确保对客户端的最佳高优先级响应。
 
-  ![image-20201105222941590](https://gitee.com/p8t/picbed/raw/master/imgs/20201105222942.png)
+![image-20201105222941590](https://gitee.com/p8t/picbed/raw/master/imgs/20201105222942.png)
 
 ## 二、HTTP报文
 

@@ -1,10 +1,10 @@
-## 构建
+## 一、构建
 
 概念：把Java源文件，配置文件，HTML，资源文件等变为一个可以运行的项目的过程
 
 构建过程中各个环节（大概）
 
-- 清理：清除旧的`.class`，资源等文件
+- 清理：清除旧的编译产物
 - 编译：`.java --> .class`
 - 测试：自动调用`JUnit`程序
 - 报告：测试程序的结果
@@ -12,7 +12,7 @@
 - 安装：`maven`特定的概念，将打包得到的文件复制到仓库中指定的位置
 - 部署：部署到`Servlet`容器，使可以运行
 
-## 目录结构
+## 二、目录结构
 
 ```
 project
@@ -26,33 +26,32 @@ project
 |---|---|---resources
 ```
 
-## 生命周期
+## 三、生命周期
 
 分为3套独立的生命周期
 
-- `Clean LifeCycle`：构建之前执行清理工作
-- `Default LifeCycle`：核心部分，编译，测试，打包，安装，部署等
-- `Site LifeCycle`：生成项目报告，站点，发布站点
+- Clean LifeCycle：构建之前执行清理工作
+- Default LifeCycle：核心部分，编译，测试，打包，安装，部署等
+- Site LifeCycle：生成项目报告，站点，发布站点
 
 生命周期仅仅定义了任务，具体执行需要插件来完成
 
-### Default LifeCycle
+### 1、Default LifeCycle
 
 截取了部分
 
-- validate  验证工程是否正确，所需的信息是否完整
-- initialize  初始化构建平台，例如：设置properties或创建目录
-- process-resources 复制并处理资源文件，至目标目录，准备打包
-- compile  编译源代码
-- test-compile  编译测试源代码
-- test  执行单元测试
-- package  将工程文件打包为指定的格式，例如JAR，WAR等
-- integration-test  集成测试
-- verify  检查package是否有效、符合标准
-- install  将包安装至本地仓库，以让其它项目依赖。
-- deploy  将包发布到远程仓库，以让其它开发人员与项目共享
+- validate：验证工程是否正确，所需的信息是否完整
+- process-resources：复制资源文件到目标目录。指的是对于静态资源不需要编译，直接复制到target目录下就行了。
+- compile：编译源代码
+- process-test-sources：复制测试目录下的资源文件到target目录
+- test-compile：编译测试源代码
+- test：执行单元测试
+- package：打包为指定的格式，如JAR，WAR
+- verify：检查package是否有效、符合标准
+- install ：将包安装至本地仓库
+- deploy ：将包发布到远程仓库
 
-### 命令
+### 2、命令
 
 必须在`pom.xml`所在的目录执行，每一个命令会从该生命周期开始执行
 
@@ -69,9 +68,9 @@ mvn deploy			: 发布 【把jar包加入到远程仓库】 可以配置自动部
 mvn site			: 生成站点 【生成关于项目信息的html页面】
 ```
 
-## 依赖
+## 四、依赖
 
-### 范围
+### 1、作用域
 
 通过`<scope></scope>`标签设置
 
@@ -82,7 +81,13 @@ mvn site			: 生成站点 【生成关于项目信息的html页面】
 | provided | $$\checkmark$$       | $$\checkmark$$         | $$\times$$     |
 | runtime  | $$\times$$           | $$\checkmark$$         | $$\checkmark$$ |
 
-### 传递性
+- compile：默认作用域，全程参与项目
+- test：只在test目录下生效，对于main目录不可见
+- provided：打包的时候不会放进去，相当于compile在打包阶段被exclude
+- runtime：跳过编译阶段
+- import：只能在dependencyManagement标签内使用，把它所在的pom文件中的dependencyManagement引入到当前pom
+
+### 2、传递性
 
 A依赖B，B依赖C，则A会自动依赖C。对于多模块项目，只需要一个父工程依赖所有需要的依赖，然后子类依赖父工程即可
 

@@ -40,7 +40,7 @@ int y = x;          // int y = x.intValue()
 - `new Integer(10)`直接创建一个新对象
 - `Integer.valueOf(10)`先从缓存池中拿，没有则创建
 
-`Integer`的缓存池大小为`[-128, 127]`
+Integer的缓存池大小为[-128, 127]
 
 ```java
 Integer a = Integer.valueOf(100);
@@ -194,22 +194,22 @@ public interface Demo {
 - 如果实现的多个接口有重复的**抽象方法**，则只需覆盖重写一次
 - 如果实现的多个接口有重复的**默认方法**，则必须覆盖重写冲突的默认方法
 - 如果一个类的父类方法和实现接口的默认方法冲突，**优先使用父类的方法**
-- 接口可以多**继承**接口，如果默认方法冲突必须覆盖重写而且要有`default`关键字
+- 接口可以多**继承**接口，如果默认方法冲突必须覆盖重写
 
 ## 异常
 
-`Java`异常分为`Exception`和`Error`。`Error`表示虚拟机无法处理的异常，最常见的有`OOM`和栈溢出。
+Java异常分为`Exception`和`Error`。`Error`表示虚拟机无法处理的异常，最常见的有OOM和栈溢出。
 
-`Exception`可以分为`Checked Exception`和`Unchecked Exception`
+`Exception`可以分为Checked Exception和Unchecked Exception
 
-- `Checked Exception`：必须处理的异常，比如`IOException`。除了`RuntimeException`及其子类外都是`Checked Exception`
-- `Unchecked Exception`：可以不处理的异常，比如`NPE`
+- Checked Exception：必须处理的异常，比如`IOException`。除了`RuntimeException`及其子类外都是Checked Exception
+- Unchecked Exception：可以不处理的异常，比如NPE
 
 ![w95klD.png](https://gitee.com/p8t/picbed/raw/master/imgs/20201116194856.png)
 
-出现`Exception`可以通过`try/catch`或`throws`来处理。其中`try/catch`是我们手动处理异常，而用`throws`则当前方法不处理，交给方法调用者来处理，如果到最后都没人处理则由虚拟机来处理，虚拟机中断线程并调用`e.printStackTrace()`
+出现`Exception`可以通过`try/catch`或`throws`来处理。其中`try/catch`是我们手动处理异常，而用`throws`则当前方法不处理，交给方法调用者来处理，如果到最后都没人处理则由虚拟机来处理，虚拟机中断线程并调用e.printStackTrace()
 
-还有个关键字`throw`，用来手动抛出异常。如果`throw`一个`RuntimeException`或`Error`，我们可以不处理，默认交给`JVM`处理
+还有个关键字throw，用来手动抛出异常。如果throw一个`RuntimeException`或`Error`，我们可以不处理，默认交给JVM处理
 
 ### 自定义异常
 
@@ -225,8 +225,6 @@ class CustomException extends RuntimeException {
     }
 }
 ```
-
-
 
 ## 泛型
 
@@ -376,16 +374,6 @@ class A<T> {
 }
 ```
 
-
-
-
-
-
-
-## 反射
-
-
-
 ## 注解
 
 ### 1、内置注解
@@ -511,19 +499,19 @@ public static void main(String[] args) throws NoSuchFieldException, NoSuchMethod
 
 ## HashCode
 
-**`HashCode`只有在用到HashMap，Set这类去重集合时才有实质性作用。**
+**HashCode只有在用到HashMap，Set这类去重集合时才有实质性作用。**
 
 对于这类集合，插入元素时：
 
-- 首先通过`HashCode`计算出桶的位置
+- 首先通过HashCode计算出桶的位置
   - 如果桶为空，则插入
-  - 如果桶非空，则通过`equals`一一比较，判断有相同的则插入失败。
+  - 如果桶非空，则通过equals一一比较，判断有相同的则插入失败。
 
-因此如果只重写了`equals`，那么即使插入相同的元素（通过`equals`比较），它们也会被分配在不同的桶中（有极低的概率正好映射在一个桶），然后调用`equals`方法自然比较不到相同的元素，就会有重复的元素在集合中
+因此如果只重写了equals，那么即使插入相同的元素（通过equals比较），它们也会被分配在不同的桶中（有极低的概率正好映射在一个桶），然后调用equals方法自然比较不到相同的元素，就会有重复的元素在集合中
 
-**总之，重写`hashCode()`是为了保证相同的元素（通过`equals`比较）映射到同一个桶中。在重写`equals()`时也应当重写`hashCode()`**
+**总之，重写`hashCode()`是为了保证相同的元素（通过equals比较）映射到同一个桶中。在重写`equals()`时也应当重写`hashCode()`**
 
-下面代码如果只重写了`equals`，那么会打印2，如果`equals`和`hashCode`都重写了就打印1
+下面代码如果只重写了equals，那么会打印2，如果equals和hashCode都重写了就打印1
 
 ```java
 @Test
@@ -537,7 +525,7 @@ public void test() {
 
 ## 初始化代码块执行顺序
 
-首先，静态代码块一定是最先加载并且只加载一次的，这是JVM类加载机制决定的（加载 => 验证 => 准备 => 解析 => 初始化，其中在初始化阶段会收集静态变量赋值语句以及`static`中的语句构成`<clinit>()`方法来执行，此后遇到`new`才轮到对象的初始化）。 其次，父类的构造先于子类构造执行，普通代码块先于构造执行。因此，正确的执行顺序如下
+首先，静态代码块一定是最先加载并且只加载一次的，这是JVM类加载机制决定的（加载 => 验证 => 准备 => 解析 => 初始化，其中在初始化阶段会收集静态变量赋值语句以及static中的语句构成`<clinit>()`方法来执行，此后遇到new才轮到对象的初始化）。 其次，父类的构造先于子类构造执行，普通代码块先于构造执行。因此，正确的执行顺序如下
 
 父类静态代码块 => 子类静态代码块 => 父类普通代码块 => 父类构造方法 => 子类普通代码块 => 子类构造方法
 
@@ -640,7 +628,7 @@ public void test01() {
 
 ## fail-fast
 
-`fail-fast`机制导致了**使用迭代器遍历集合**的时候，如果集合结构被修改则抛出`ConcurrentModificationException`异常（并不一定抛，因为是多线程，可能改了又改回来而迭代器没有检测到），目的是及时止损。这也导致了单线程环境处理不当也会抛异常。
+`fail-fast`机制导致了**使用迭代器遍历集合**的时候，如果集合结构被修改则抛出`ConcurrentModificationException`异常，目的是及时止损。这也导致了单线程环境处理不当也会抛异常。
 
 ```java
 @Test

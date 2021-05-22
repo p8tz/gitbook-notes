@@ -891,7 +891,6 @@ static class ThreadLocalMap {
           System.out.println("exit");
       });
   
-  
       Thread t2 = new Thread(() -> {
           TimeUnit.SECONDS.sleep(1);
           flag = false;
@@ -900,9 +899,9 @@ static class ThreadLocalMap {
       t2.start();
   }
   ```
-
   
 
+  
 - 有序性，通过添加内存屏障指令，屏障前后的指令不能重排
 
 ## 十五、CAS
